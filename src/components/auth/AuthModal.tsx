@@ -227,13 +227,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   <div className="space-y-2">
                     <label className="text-sm font-medium ml-1">Phone Number</label>
                     <div className="relative">
-                      <Phone className="absolute left-4 top-3.5 w-5 h-5 text-muted-foreground" />
+                      <Phone className="absolute left-5 top-3.5 w-5 h-5 text-muted-foreground" />
                       <input 
                         type="tel"
                         placeholder="+91 98765 43210"
                         value={phoneNumber}
                         onChange={(e) => setPhoneNumber(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3.5 bg-secondary border-none rounded-2xl focus:ring-2 focus:ring-primary transition-all outline-none"
+                        className="w-full pl-16 pr-4 py-3.5 bg-secondary border-none rounded-2xl focus:ring-2 focus:ring-primary transition-all outline-none"
                         required
                       />
                     </div>
