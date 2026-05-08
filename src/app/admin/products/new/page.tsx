@@ -20,6 +20,7 @@ import { db, storage } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import toast from "react-hot-toast";
+import { cn } from "@/lib/utils";
 
 export default function NewProductPage() {
   const { profile } = useAuth();

@@ -16,6 +16,7 @@ import {
 import { db } from "@/lib/firebase";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import toast from "react-hot-toast";
+import { cn } from "@/lib/utils";
 
 export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -170,4 +171,3 @@ export default function AdminSettingsPage() {
   );
 }
 
-import { cn } from "@/lib/utils";
