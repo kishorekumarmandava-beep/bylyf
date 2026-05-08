@@ -259,7 +259,7 @@ export default function ProfilePage() {
                     <label className="text-sm font-bold ml-1">Display Name</label>
                     <input 
                       type="text" 
-                      defaultValue={profile.displayName}
+                      defaultValue={profile.displayName || ""}
                       className="w-full px-4 py-3.5 bg-secondary border border-border rounded-2xl outline-none"
                     />
                   </div>
@@ -267,7 +267,7 @@ export default function ProfilePage() {
                     <label className="text-sm font-bold ml-1">Email Address</label>
                     <input 
                       type="email" 
-                      defaultValue={profile.email}
+                      defaultValue={profile.email || ""}
                       className="w-full px-4 py-3.5 bg-secondary border border-border rounded-2xl outline-none"
                     />
                   </div>
