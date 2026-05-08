@@ -1,4 +1,5 @@
 import Navbar from "@/components/layout/Navbar";
+import Link from "next/link";
 import { mockProducts } from "@/data/mockProducts";
 import ProductGrid from "@/components/shop/ProductGrid";
 import { ArrowRight, Zap, Shield, Sparkles, CheckCircle2 } from "lucide-react";
@@ -23,7 +24,7 @@ export default function Home() {
                 Only on <span className="text-primary">BYLYF.</span>
               </h1>
               <p className="text-xl text-muted-foreground mb-10 max-w-xl animate-in" style={{ animationDelay: "200ms" }}>
-                Experience the next generation of ecommerce. Premium products, instant lucky draws, and a platform built for India's digital future.
+                Experience the next generation of ecommerce. Premium products, Lucky Draw, and a platform built for India's digital future.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 animate-in" style={{ animationDelay: "300ms" }}>
                 <a 
@@ -33,9 +34,12 @@ export default function Home() {
                   Browse Catalog
                   <ArrowRight className="w-6 h-6" />
                 </a>
-                <button className="px-8 py-5 bg-secondary text-foreground rounded-2xl font-bold text-lg hover:bg-secondary/80 transition-all">
+                <Link 
+                  href="/lucky-draw"
+                  className="px-8 py-5 bg-secondary text-foreground rounded-2xl font-bold text-lg hover:bg-secondary/80 transition-all flex items-center justify-center"
+                >
                   Learn About Bumper Draw
-                </button>
+                </Link>
               </div>
 
               {/* Stats */}

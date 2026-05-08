@@ -61,6 +61,7 @@ export default function Footer() {
             <h4 className="text-sm font-black uppercase tracking-[0.2em] mb-6">Support</h4>
             <ul className="space-y-4 text-sm font-bold text-muted-foreground">
               <li><Link href="/legal/grievance" className="hover:text-primary transition-colors">Grievance Redressal</Link></li>
+              <li><Link href="/transparency" className="hover:text-primary transition-colors">Transparency Report</Link></li>
               <li><Link href="/help" className="hover:text-primary transition-colors">Help Center</Link></li>
               <li><Link href="/legal/refund" className="hover:text-primary transition-colors">Return & Replacement</Link></li>
               <li><Link href="/order-tracking" className="hover:text-primary transition-colors">Track Your Order</Link></li>
