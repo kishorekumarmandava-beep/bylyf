@@ -193,7 +193,7 @@ export default function CheckoutPage() {
             
             const eligibleSpend = items
               .filter(i => mockProducts.find(p => p.id === i.id)?.luckyDrawEligible)
-              .reduce((acc, i) => acc + (i.price * i.quantity), 0);
+              .reduce((acc, i) => acc + (i.sellingPrice * i.quantity), 0);
             
             const couponsEarned = Math.floor(eligibleSpend / agentConfig.minSpendForCoupon);
             
