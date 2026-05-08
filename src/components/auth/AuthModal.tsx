@@ -201,82 +201,81 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md overflow-y-auto">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 0 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="w-full max-w-md bg-background rounded-3xl shadow-2xl overflow-hidden border border-border"
+            exit={{ opacity: 0, scale: 0.95, y: 0 }}
+            className="w-full max-w-md bg-background rounded-[3rem] shadow-[0_32px_64px_-15px_rgba(0,0,0,0.5)] overflow-hidden border border-border/50 my-auto"
           >
-            <div className="relative p-8">
+            <div className="relative p-10 flex flex-col items-center">
               <button 
                 onClick={onClose}
-                className="absolute top-4 right-4 p-2 rounded-full hover:bg-secondary transition-colors"
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-secondary transition-colors"
               >
                 <X className="w-5 h-5 text-muted-foreground" />
               </button>
 
-              <div className="mb-8 text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary text-primary-foreground mb-4 shadow-lg">
-                  <ShieldCheck className="w-8 h-8" />
+              <div className="mb-10 text-center w-full">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-primary text-primary-foreground mb-6 shadow-xl shadow-primary/20">
+                  <ShieldCheck className="w-10 h-10" />
                 </div>
-                <h2 className="text-2xl font-bold tracking-tight">BYLYF Secure Access</h2>
-                <p className="text-muted-foreground mt-2">Join India's premium shopping experience</p>
+                <h2 className="text-3xl font-black tracking-tight leading-tight">BYLYF Secure Access</h2>
+                <p className="text-sm text-muted-foreground mt-3 font-bold uppercase tracking-widest">Premium Shopping Access</p>
               </div>
 
               {step === "phone" && (
-                <form onSubmit={handleSendOtp} className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium ml-1">Phone Number</label>
+                <form onSubmit={handleSendOtp} className="space-y-8 w-full">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Phone Number</label>
                     <div className="relative">
-                      <Phone className="absolute left-5 top-3.5 w-5 h-5 text-muted-foreground" />
+                      <Phone className="absolute left-5 top-4 w-5 h-5 text-primary/50" />
                       <input 
                         type="tel"
                         placeholder="+919876543210"
                         value={phoneNumber}
                         onChange={handlePhoneChange}
-                        className="w-full pl-16 pr-4 py-3.5 bg-background border border-border rounded-2xl focus:ring-2 focus:ring-primary transition-all outline-none font-bold"
+                        className="w-full pl-16 pr-6 py-4 bg-secondary/30 border border-border rounded-2xl focus:ring-2 focus:ring-primary transition-all outline-none font-black text-lg"
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-4 border-t border-border pt-6">
-                    <div className="flex gap-3">
-                      <input 
-                        type="checkbox"
-                        id="consent-policies-main"
-                        checked={consentPolicies}
-                        onChange={(e) => setConsentPolicies(e.target.checked)}
-                        className="mt-1 w-5 h-5 accent-primary cursor-pointer"
-                      />
-                      <label htmlFor="consent-policies-main" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
-                        I agree to the <span className="text-primary font-medium hover:underline">Terms of Service</span>, 
-                        <span className="text-primary font-medium hover:underline"> Privacy Policy</span>, and 
-                        <span className="text-primary font-medium hover:underline"> Refund/Shipping Policies</span>.
-                      </label>
+                  <div className="space-y-5 py-6 border-y border-border/50">
+                    <div className="flex gap-4 items-start group cursor-pointer" onClick={() => setConsentPolicies(!consentPolicies)}>
+                      <div className={cn(
+                        "mt-1 w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center shrink-0",
+                        consentPolicies ? "bg-primary border-primary" : "border-border"
+                      )}>
+                        {consentPolicies && <CheckCircle2 className="w-3 h-3 text-white" />}
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed font-bold">
+                        I agree to the <span className="text-primary hover:underline">Terms</span>, 
+                        <span className="text-primary hover:underline"> Privacy</span>, and 
+                        <span className="text-primary hover:underline"> Refund</span> Policies.
+                      </p>
                     </div>
 
-                    <div className="flex gap-3">
-                      <input 
-                        type="checkbox"
-                        id="consent-promo-main"
-                        checked={consentPromotional}
-                        onChange={(e) => setConsentPromotional(e.target.checked)}
-                        className="mt-1 w-5 h-5 accent-primary cursor-pointer"
-                      />
-                      <label htmlFor="consent-promo-main" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
-                        I consent to receive updates via WhatsApp, Email, and SMS.
-                      </label>
+                    <div className="flex gap-4 items-start group cursor-pointer" onClick={() => setConsentPromotional(!consentPromotional)}>
+                      <div className={cn(
+                        "mt-1 w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center shrink-0",
+                        consentPromotional ? "bg-primary border-primary" : "border-border"
+                      )}>
+                        {consentPromotional && <CheckCircle2 className="w-3 h-3 text-white" />}
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed font-bold">
+                        I consent to receive updates via WhatsApp and SMS.
+                      </p>
                     </div>
                   </div>
 
                   <div id="recaptcha-container"></div>
+                  
                   <button 
                     disabled={loading || !consentPolicies}
-                    className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+                    className="w-full py-5 bg-primary text-primary-foreground rounded-[1.5rem] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-primary/30 disabled:opacity-50"
                   >
-                    {loading ? "Sending..." : "Send OTP"}
+                    {loading ? "AUTHENTICATING..." : "SEND OTP"}
                     <ArrowRight className="w-5 h-5" />
                   </button>
                   <p className="text-[10px] text-center text-muted-foreground">
