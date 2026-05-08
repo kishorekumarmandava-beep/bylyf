@@ -5,7 +5,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
-export type UserRole = "customer" | "admin" | "physical_agent" | "storefront_agent";
+export type UserRole = "user" | "admin" | "agent" | "storefront_agent";
 
 export interface UserProfile {
   uid: string;
@@ -16,7 +16,10 @@ export interface UserProfile {
   createdAt: any;
   updatedAt: any;
   referralCode?: string;
-  agentId?: string; // For physical agents
+  agentId?: string;
+  agentStatus?: "pending" | "active" | "rejected";
+  agentAppliedAt?: any;
+  agentJoinedAt?: any;
   status: "pending" | "approved" | "rejected" | "active";
   consent: {
     policies: boolean;
