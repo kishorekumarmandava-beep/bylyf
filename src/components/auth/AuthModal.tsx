@@ -24,7 +24,7 @@ const POLICY_VERSION = "1.0.0-2026-05";
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [step, setStep] = useState<"phone" | "otp" | "profile">("phone");
-  const [phoneNumber, setPhoneNumber] = useState("+91 ");
+  const [phoneNumber, setPhoneNumber] = useState("+91");
   const [otp, setOtp] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
@@ -51,10 +51,21 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     }
   }, [isOpen]);
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+    // Always ensure it starts with +91 and has no spaces
+    if (!value.startsWith("+91")) {
+      value = "+91" + value.replace(/^\+?9?1?/, "");
+    }
+    // Remove all spaces and non-numeric characters (except +)
+    value = value.replace(/[^\d+]/g, "");
+    setPhoneNumber(value);
+  };
+
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phoneNumber.trim().startsWith("+91") || phoneNumber.trim().length < 13) {
-      toast.error("Please enter a valid Indian phone number (+91 XXXXX XXXXX)");
+    if (phoneNumber.length < 13) {
+      toast.error("Please enter your 10-digit phone number after +91");
       return;
     }
     setLoading(true);
@@ -68,13 +79,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         window.recaptchaVerifier = undefined;
       }
 
-      // 2. Initialize fresh recaptcha with a small delay to ensure DOM is ready
+      // 2. Initialize fresh recaptcha
       const container = document.getElementById("recaptcha-container");
       if (!container) {
         throw new Error("Recaptcha container not found in DOM");
       }
-      
-      // Clear container children just in case
       container.innerHTML = "";
 
       window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
@@ -84,24 +93,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         }
       });
 
-      // Strip all spaces for Firebase
-      const formattedPhone = phoneNumber.replace(/\s+/g, '');
-      const confirmation = await signInWithPhoneNumber(auth, formattedPhone, window.recaptchaVerifier);
+      const confirmation = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
       setConfirmationResult(confirmation);
       setStep("otp");
       toast.success("OTP sent successfully!");
     } catch (error: any) {
       console.error("Auth Error:", error);
-      
       if (error.code === "auth/invalid-phone-number") {
         toast.error("Invalid phone number format.");
-      } else if (error.code === "auth/too-many-requests") {
-        toast.error("Too many attempts. Please try again later.");
       } else {
         toast.error(error.message || "Failed to send OTP.");
       }
-      
-      // Reset on error
       if (window.recaptchaVerifier) {
         try { window.recaptchaVerifier.clear(); } catch(e) {}
         window.recaptchaVerifier = undefined;
@@ -230,10 +232,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       <Phone className="absolute left-5 top-3.5 w-5 h-5 text-muted-foreground" />
                       <input 
                         type="tel"
-                        placeholder="+91 98765 43210"
+                        placeholder="+919876543210"
                         value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        className="w-full pl-16 pr-4 py-3.5 bg-secondary border-none rounded-2xl focus:ring-2 focus:ring-primary transition-all outline-none"
+                        onChange={handlePhoneChange}
+                        className="w-full pl-16 pr-4 py-3.5 bg-background border border-border rounded-2xl focus:ring-2 focus:ring-primary transition-all outline-none font-bold"
                         required
                       />
                     </div>
