@@ -1,0 +1,89 @@
+[debug] [2026-05-08T07:05:59.512Z] ----------------------------------------------------------------------
+[debug] [2026-05-08T07:05:59.517Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\kisho\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only firestore:rules
+[debug] [2026-05-08T07:05:59.517Z] CLI Version:   15.13.0
+[debug] [2026-05-08T07:05:59.517Z] Platform:      win32
+[debug] [2026-05-08T07:05:59.517Z] Node Version:  v24.14.1
+[debug] [2026-05-08T07:05:59.517Z] Time:          Fri May 08 2026 12:35:59 GMT+0530 (India Standard Time)
+[debug] [2026-05-08T07:05:59.518Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-05-08T07:06:02.374Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-08T07:06:02.374Z] > authorizing via signed-in user (kishorekumarmandava@gmail.com)
+[debug] [2026-05-08T07:06:02.374Z] [iam] checking project bylyf-store-2026 for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2026-05-08T07:06:02.375Z] Checked if tokens are valid: false, expires at: 1778216171889
+[debug] [2026-05-08T07:06:02.376Z] Checked if tokens are valid: false, expires at: 1778216171889
+[debug] [2026-05-08T07:06:02.376Z] > refreshing access token with scopes: []
+[debug] [2026-05-08T07:06:02.377Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-05-08T07:06:02.377Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-05-08T07:06:26.126Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-05-08T07:06:26.127Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-05-08T07:06:26.141Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/bylyf-store-2026:testIamPermissions [none]
+[debug] [2026-05-08T07:06:26.141Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/bylyf-store-2026:testIamPermissions  x-goog-user-project=bylyf-store-2026
+[debug] [2026-05-08T07:06:26.141Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/bylyf-store-2026:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2026-05-08T07:06:27.768Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/bylyf-store-2026:testIamPermissions 200
+[debug] [2026-05-08T07:06:27.768Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/bylyf-store-2026:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'bylyf-store-2026'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-05-08T07:06:27.772Z] Checked if tokens are valid: true, expires at: 1778227585127
+[debug] [2026-05-08T07:06:27.773Z] Checked if tokens are valid: true, expires at: 1778227585127
+[debug] [2026-05-08T07:06:27.773Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/bylyf-store-2026/services/firestore.googleapis.com [none]
+[debug] [2026-05-08T07:06:27.773Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/bylyf-store-2026/services/firestore.googleapis.com  x-goog-user-project=bylyf-store-2026
+[debug] [2026-05-08T07:06:29.718Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/bylyf-store-2026/services/firestore.googleapis.com 200
+[debug] [2026-05-08T07:06:29.719Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/bylyf-store-2026/services/firestore.googleapis.com [omitted]
+[info] +  firestore: required API firestore.googleapis.com is enabled 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-05-08T07:06:29.732Z] Checked if tokens are valid: true, expires at: 1778227585127
+[debug] [2026-05-08T07:06:29.732Z] Checked if tokens are valid: true, expires at: 1778227585127
+[debug] [2026-05-08T07:06:29.732Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/bylyf-store-2026/databases/(default) [none]
+[debug] [2026-05-08T07:06:30.279Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/bylyf-store-2026/databases/(default) 200
+[debug] [2026-05-08T07:06:30.280Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/bylyf-store-2026/databases/(default) {"name":"projects/bylyf-store-2026/databases/(default)","uid":"b69a3397-6f61-4227-a488-02de8230b1c5","createTime":"2026-05-08T07:00:51.143294Z","updateTime":"2026-05-08T07:00:51.143294Z","locationId":"asia-south1","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-05-08T07:00:51.143294Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"j","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IMXLx8qQqZQDMPmd3sOPqZQD"}
+[info] i  firestore: reading indexes from firestore.indexes.json... 
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2026-05-08T07:06:30.284Z] Checked if tokens are valid: true, expires at: 1778227585127
+[debug] [2026-05-08T07:06:30.284Z] Checked if tokens are valid: true, expires at: 1778227585127
+[debug] [2026-05-08T07:06:30.284Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026:test [none]
+[debug] [2026-05-08T07:06:30.284Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026:test [omitted]
+[debug] [2026-05-08T07:07:03.845Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026:test 200
+[debug] [2026-05-08T07:07:03.846Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026:test {}
+[info] +  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2026-05-08T07:07:03.848Z] Checked if tokens are valid: true, expires at: 1778227585127
+[debug] [2026-05-08T07:07:03.848Z] Checked if tokens are valid: true, expires at: 1778227585127
+[debug] [2026-05-08T07:07:03.848Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/releases pageSize=10&pageToken=
+[debug] [2026-05-08T07:07:05.193Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/releases 200
+[debug] [2026-05-08T07:07:05.194Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/releases {}
+[info] i  firestore: uploading rules firestore.rules... 
+[debug] [2026-05-08T07:07:05.194Z] Checked if tokens are valid: true, expires at: 1778227585127
+[debug] [2026-05-08T07:07:05.194Z] Checked if tokens are valid: true, expires at: 1778227585127
+[debug] [2026-05-08T07:07:05.194Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/rulesets [none]
+[debug] [2026-05-08T07:07:05.195Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/rulesets [omitted]
+[debug] [2026-05-08T07:07:06.783Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/rulesets 200
+[debug] [2026-05-08T07:07:06.784Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/rulesets {"name":"projects/bylyf-store-2026/rulesets/b78a523c-092f-45ba-9932-b04b5b7e921c","source":{"files":[{"content":"rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /{document=**} {\n      allow read, write: if request.auth != null;\n    }\n  }\n}\n","name":"firestore.rules"}]},"createTime":"2026-05-08T07:07:07.397669Z","metadata":{"services":["cloud.firestore"]}}
+[debug] [2026-05-08T07:07:06.784Z] [rules] created ruleset projects/bylyf-store-2026/rulesets/b78a523c-092f-45ba-9932-b04b5b7e921c
+[debug] [2026-05-08T07:07:06.784Z] [rules] releasing cloud.firestore/(default) with ruleset projects/bylyf-store-2026/rulesets/b78a523c-092f-45ba-9932-b04b5b7e921c
+[debug] [2026-05-08T07:07:06.785Z] Checked if tokens are valid: true, expires at: 1778227585127
+[debug] [2026-05-08T07:07:06.785Z] Checked if tokens are valid: true, expires at: 1778227585127
+[debug] [2026-05-08T07:07:06.785Z] >>> [apiv2][query] PATCH https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/releases/cloud.firestore/(default) [none]
+[debug] [2026-05-08T07:07:06.785Z] >>> [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/releases/cloud.firestore/(default) {"release":{"name":"projects/bylyf-store-2026/releases/cloud.firestore/(default)","rulesetName":"projects/bylyf-store-2026/rulesets/b78a523c-092f-45ba-9932-b04b5b7e921c"}}
+[debug] [2026-05-08T07:07:08.183Z] <<< [apiv2][status] PATCH https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/releases/cloud.firestore/(default) 404
+[debug] [2026-05-08T07:07:08.183Z] <<< [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/releases/cloud.firestore/(default) {"error":{"code":404,"message":"Requested entity was not found.","status":"NOT_FOUND"}}
+[debug] [2026-05-08T07:07:08.184Z] [rules] ruleset update failed, attempting to create instead
+[debug] [2026-05-08T07:07:08.184Z] Checked if tokens are valid: true, expires at: 1778227585127
+[debug] [2026-05-08T07:07:08.184Z] Checked if tokens are valid: true, expires at: 1778227585127
+[debug] [2026-05-08T07:07:08.184Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/releases [none]
+[debug] [2026-05-08T07:07:08.184Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/releases {"name":"projects/bylyf-store-2026/releases/cloud.firestore/(default)","rulesetName":"projects/bylyf-store-2026/rulesets/b78a523c-092f-45ba-9932-b04b5b7e921c"}
+[debug] [2026-05-08T07:07:09.621Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/releases 200
+[debug] [2026-05-08T07:07:09.621Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/releases {"name":"projects/bylyf-store-2026/releases/cloud.firestore","rulesetName":"projects/bylyf-store-2026/rulesets/b78a523c-092f-45ba-9932-b04b5b7e921c","createTime":"2026-05-08T07:07:10.326750Z","updateTime":"2026-05-08T07:07:10.326750Z"}
+[debug] [2026-05-08T07:07:09.622Z] [rules] created release projects/bylyf-store-2026/releases/cloud.firestore
+[info] +  firestore: released rules firestore.rules to cloud.firestore 
+[info] 
+[info] +  Deploy complete! 
+[info] 
+[info] Project Console: https://console.firebase.google.com/project/bylyf-store-2026/overview
+[debug] [2026-05-08T07:07:19.647Z] Error: Timed out.
+    at Timeout._onTimeout (C:\Users\kisho\AppData\Roaming\npm\node_modules\firebase-tools\lib\utils.js:309:49)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+[error] 
+[error] Error: An unexpected error has occurred.
