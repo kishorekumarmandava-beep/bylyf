@@ -35,6 +35,22 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [consentPolicies, setConsentPolicies] = useState(false);
   const [consentPromotional, setConsentPromotional] = useState(false);
 
+  // Handle Recaptcha cleanup on unmount or close
+  useEffect(() => {
+    if (!isOpen) {
+      if (window.recaptchaVerifier) {
+        try {
+          window.recaptchaVerifier.clear();
+          window.recaptchaVerifier = undefined;
+        } catch (e) {
+          console.error("Recaptcha cleanup error:", e);
+        }
+      }
+      setStep("phone");
+      setLoading(false);
+    }
+  }, [isOpen]);
+
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phoneNumber.trim().startsWith("+91") || phoneNumber.trim().length < 13) {
@@ -44,19 +60,27 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setLoading(true);
 
     try {
-      // Clear existing recaptcha if any
+      // 1. Thoroughly clear existing instance
       if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
+        try {
+          window.recaptchaVerifier.clear();
+        } catch (e) {}
+        window.recaptchaVerifier = undefined;
       }
 
-      // Initialize fresh recaptcha
+      // 2. Initialize fresh recaptcha with a small delay to ensure DOM is ready
+      const container = document.getElementById("recaptcha-container");
+      if (!container) {
+        throw new Error("Recaptcha container not found in DOM");
+      }
+      
+      // Clear container children just in case
+      container.innerHTML = "";
+
       window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
         size: "invisible",
         callback: () => {
           console.log("reCAPTCHA solved");
-        },
-        'expired-callback': () => {
-          toast.error("reCAPTCHA expired. Please try again.");
         }
       });
 
@@ -68,18 +92,18 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       toast.success("OTP sent successfully!");
     } catch (error: any) {
       console.error("Auth Error:", error);
-      // Provide more helpful error messages
+      
       if (error.code === "auth/invalid-phone-number") {
         toast.error("Invalid phone number format.");
       } else if (error.code === "auth/too-many-requests") {
         toast.error("Too many attempts. Please try again later.");
       } else {
-        toast.error(error.message || "Failed to send OTP. Check console for details.");
+        toast.error(error.message || "Failed to send OTP.");
       }
       
-      // Reset recaptcha on error
+      // Reset on error
       if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
+        try { window.recaptchaVerifier.clear(); } catch(e) {}
         window.recaptchaVerifier = undefined;
       }
     } finally {
