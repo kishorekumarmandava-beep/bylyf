@@ -201,14 +201,14 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md overflow-y-auto">
+        <div className="fixed inset-0 z-[100] flex min-h-screen items-center justify-center p-4 bg-black/70 backdrop-blur-lg">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 0 }}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 0 }}
-            className="w-full max-w-md bg-background rounded-[3rem] shadow-[0_32px_64px_-15px_rgba(0,0,0,0.5)] overflow-hidden border border-border/50 my-auto"
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            className="w-full max-w-md bg-background rounded-3xl shadow-2xl overflow-hidden border border-border"
           >
-            <div className="relative p-10 flex flex-col items-center">
+            <div className="relative p-8">
               <button 
                 onClick={onClose}
                 className="absolute top-6 right-6 p-2 rounded-full hover:bg-secondary transition-colors"
@@ -216,26 +216,26 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 <X className="w-5 h-5 text-muted-foreground" />
               </button>
 
-              <div className="mb-10 text-center w-full">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-primary text-primary-foreground mb-6 shadow-xl shadow-primary/20">
-                  <ShieldCheck className="w-10 h-10" />
+              <div className="mb-8 text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary text-primary-foreground mb-4 shadow-lg">
+                  <ShieldCheck className="w-8 h-8" />
                 </div>
-                <h2 className="text-3xl font-black tracking-tight leading-tight">BYLYF Secure Access</h2>
-                <p className="text-sm text-muted-foreground mt-3 font-bold uppercase tracking-widest">Premium Shopping Access</p>
+                <h2 className="text-2xl font-black tracking-tight">BYLYF Secure Access</h2>
+                <p className="text-muted-foreground mt-2 text-sm">Sign in to your account</p>
               </div>
 
               {step === "phone" && (
-                <form onSubmit={handleSendOtp} className="space-y-8 w-full">
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Phone Number</label>
+                <form onSubmit={handleSendOtp} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold ml-1">Phone Number</label>
                     <div className="relative">
-                      <Phone className="absolute left-5 top-4 w-5 h-5 text-primary/50" />
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <input 
                         type="tel"
                         placeholder="+919876543210"
                         value={phoneNumber}
                         onChange={handlePhoneChange}
-                        className="w-full pl-16 pr-6 py-4 bg-secondary/30 border border-border rounded-2xl focus:ring-2 focus:ring-primary transition-all outline-none font-black text-lg"
+                        className="w-full pl-12 pr-4 py-3.5 bg-secondary border-2 border-border rounded-xl focus:border-primary focus:ring-0 transition-all outline-none font-bold text-base text-foreground"
                         required
                       />
                     </div>
