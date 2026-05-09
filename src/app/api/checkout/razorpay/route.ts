@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
 
 export async function POST(req: Request) {
+  const key_id = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+  const key_secret = process.env.RAZORPAY_KEY_SECRET;
+
   try {
     const { amount, currency = "INR", receipt } = await req.json();
-
-    const key_id = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-    const key_secret = process.env.RAZORPAY_KEY_SECRET;
 
     if (!key_id || !key_secret) {
       console.error("Missing Razorpay Keys in Environment");
@@ -50,8 +50,10 @@ export async function POST(req: Request) {
                      error.description || 
                      (typeof error === 'string' ? error : JSON.stringify(error));
 
+    const keyPrefix = key_id ? `(Key: ${key_id.substring(0, 8)}...)` : "(Key missing)";
+
     return NextResponse.json(
-      { error: `Razorpay API Error (Key: ${key_id.substring(0, 8)}...): ` + errorMsg },
+      { error: `Razorpay API Error ${keyPrefix}: ` + errorMsg },
       { status: 500 }
     );
   }
