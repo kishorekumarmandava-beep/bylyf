@@ -34,31 +34,39 @@ function getRoleConfig(role: string) {
 function RoleDropdown({ userId, currentRole, onChanged }: { userId: string; currentRole: string; onChanged: () => void }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pendingRole, setPendingRole] = useState<Role | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setPendingRole(null);
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const setRole = async (newRole: Role) => {
-    if (newRole === currentRole) { setOpen(false); return; }
-    const label = getRoleConfig(newRole).label;
-    if (!window.confirm(`Change this user's role to "${label}"?`)) { setOpen(false); return; }
+  const selectRole = (role: Role) => {
+    if (role === currentRole) { setOpen(false); return; }
+    setPendingRole(role);
+    setOpen(false);
+  };
+
+  const confirmChange = async () => {
+    if (!pendingRole) return;
     setLoading(true);
     try {
-      await updateDoc(doc(db, "users", userId), { role: newRole });
-      toast.success(`Role updated to ${label}`);
+      await updateDoc(doc(db, "users", userId), { role: pendingRole });
+      toast.success(`Role updated to ${getRoleConfig(pendingRole).label}`);
       onChanged();
     } catch (err: any) {
       toast.error(err.message || "Failed to update role.");
     } finally {
       setLoading(false);
-      setOpen(false);
+      setPendingRole(null);
     }
   };
 
@@ -66,6 +74,31 @@ function RoleDropdown({ userId, currentRole, onChanged }: { userId: string; curr
 
   return (
     <div ref={ref} className="relative inline-block text-left">
+      {/* Inline confirm banner */}
+      {pendingRole && (
+        <div className="absolute right-0 bottom-full mb-2 w-56 bg-background border border-border rounded-2xl shadow-2xl p-4 z-50">
+          <p className="text-xs font-bold mb-3 text-center">
+            Change role to <span className={cn("font-black", getRoleConfig(pendingRole).color.split(" ")[1])}>{getRoleConfig(pendingRole).label}</span>?
+          </p>
+          <div className="flex gap-2">
+            <button
+              id={`confirm-role-${userId}`}
+              onClick={confirmChange}
+              disabled={loading}
+              className="flex-1 py-2 bg-primary text-primary-foreground rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
+            >
+              {loading ? "Saving..." : "Confirm"}
+            </button>
+            <button
+              onClick={() => setPendingRole(null)}
+              className="flex-1 py-2 bg-secondary rounded-xl text-[10px] font-black uppercase tracking-widest"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <button
         onClick={() => setOpen(o => !o)}
         disabled={loading}
@@ -84,7 +117,8 @@ function RoleDropdown({ userId, currentRole, onChanged }: { userId: string; curr
           {ROLES.map(r => (
             <button
               key={r.value}
-              onClick={() => setRole(r.value)}
+              id={`role-option-${r.value}-${userId}`}
+              onClick={() => selectRole(r.value)}
               className={cn(
                 "w-full flex items-center gap-3 px-4 py-3 text-xs font-black uppercase tracking-widest transition-colors text-left",
                 r.value === currentRole
