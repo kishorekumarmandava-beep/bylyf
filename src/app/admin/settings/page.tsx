@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/layout/Navbar";
+import AdminNav from "@/components/admin/AdminNav";
 import { 
   Settings, 
   Save, 
@@ -61,6 +62,7 @@ export default function AdminSettingsPage() {
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
+      <AdminNav />
 
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="flex justify-between items-center mb-12">

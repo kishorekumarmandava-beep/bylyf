@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/layout/Navbar";
+import AdminNav from "@/components/admin/AdminNav";
 import { 
   ShieldCheck, 
   Search, 
@@ -178,6 +179,7 @@ export default function AdminUsersPage() {
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
+      <AdminNav />
 
       <div className="max-w-7xl mx-auto px-4 py-12">
         {/* Header */}

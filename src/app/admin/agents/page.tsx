@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
+import AdminNav from "@/components/admin/AdminNav";
 import { 
   Users, 
   CheckCircle2, 
@@ -72,6 +73,7 @@ export default function AdminAgentsPage() {
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
+      <AdminNav />
 
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
