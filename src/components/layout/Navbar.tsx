@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
-import { Search, ShoppingCart, User, LogOut, Menu, X, Zap } from "lucide-react";
+import { Search, ShoppingCart, User, LogOut, Menu, X, Zap, ShieldCheck, Share2, Package } from "lucide-react";
 import AuthModal from "@/components/auth/AuthModal";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
@@ -134,6 +134,24 @@ export default function Navbar() {
 
             {user ? (
               <div className="flex items-center gap-4">
+                {profile?.role === "admin" && (
+                  <Link href="/admin/users" className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-all font-bold text-xs uppercase tracking-widest">
+                    <ShieldCheck className="w-4 h-4" />
+                    Dashboard
+                  </Link>
+                )}
+                {profile?.role === "agent" && (
+                  <Link href="/agent/referral" className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 text-blue-600 rounded-full hover:bg-blue-500/20 transition-all font-bold text-xs uppercase tracking-widest">
+                    <Share2 className="w-4 h-4" />
+                    Referral Portal
+                  </Link>
+                )}
+                {profile?.role === "storefront_agent" && (
+                  <Link href="/agent/storefront" className="flex items-center gap-2 px-4 py-2 bg-violet-500/10 text-violet-600 rounded-full hover:bg-violet-500/20 transition-all font-bold text-xs uppercase tracking-widest">
+                    <Package className="w-4 h-4" />
+                    Storefront Portal
+                  </Link>
+                )}
                 <Link href="/profile" className="flex items-center gap-3 p-1 pr-4 bg-secondary rounded-full hover:opacity-80 transition-opacity">
                   <div className="w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center">
                     <User className="w-5 h-5" />

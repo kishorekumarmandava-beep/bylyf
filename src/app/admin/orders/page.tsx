@@ -17,6 +17,7 @@ import {
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, getDocs } from "firebase/firestore";
 import { cn } from "@/lib/utils";
+import toast from "react-hot-toast";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -31,8 +32,9 @@ export default function AdminOrdersPage() {
       const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
       const snapshot = await getDocs(q);
       setOrders(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      toast.error("Failed to fetch orders. Access denied.");
     } finally {
       setLoading(false);
     }

