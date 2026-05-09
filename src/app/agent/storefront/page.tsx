@@ -50,10 +50,10 @@ export default function StorefrontAgentDashboard() {
 
   const activeCoupons = coupons.filter(c => c.status === "active");
   const redeemedCoupons = coupons.filter(c => c.status === "redeemed");
-  const redemptionsInCycle = redeemedCoupons.length % 6;
-  const fullCycles = Math.floor(redeemedCoupons.length / 6);
-  const totalEarned = fullCycles * 3000;
-  const progressPct = (redemptionsInCycle / 6) * 100;
+  // Calculate commission based on successful lucky draw items bought by these customers
+  // For now, we assume each redemption led to at least 1 coupon item.
+  // In a real system, we'd sum the couponsEarned from the orders that used these coupons.
+  const totalEarned = redeemedCoupons.reduce((acc, c) => acc + (c.couponsEarned || 1) * 500, 0);
 
   const generateBatch = async (count: number = 10) => {
     if (!user) return;
@@ -148,7 +148,7 @@ export default function StorefrontAgentDashboard() {
               Welcome, {profile?.displayName?.split(" ")[0]} 👋
             </h1>
             <p className="text-muted-foreground mt-2">
-              Distribute ₹500 coupons to customers. Earn ₹3,000 for every 6 redemptions.
+              Distribute ₹500 discount coupons. Earn ₹500 for every Lucky Draw item bought by your referred customers.
             </p>
           </div>
           <div className="flex gap-3">
@@ -190,43 +190,7 @@ export default function StorefrontAgentDashboard() {
           {/* Left */}
           <div className="lg:col-span-8 space-y-8">
 
-            {/* Commission Milestone */}
-            <div className="bg-gradient-to-br from-violet-600 to-violet-800 text-white rounded-[3rem] p-10 relative overflow-hidden shadow-2xl shadow-violet-500/30">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
-              <div className="relative z-10">
-                <h3 className="text-2xl font-black mb-6">Commission Cycle</h3>
-                <div className="flex justify-between items-end mb-4">
-                  <div>
-                    <div className="text-5xl font-black">{redemptionsInCycle}<span className="text-2xl opacity-60"> / 6</span></div>
-                    <div className="text-xs font-bold uppercase tracking-widest opacity-60 mt-1">Redemptions in current cycle</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-black">₹3,000</div>
-                    <div className="text-xs font-bold uppercase tracking-widest opacity-60">Payout per cycle</div>
-                  </div>
-                </div>
-                <div className="h-4 bg-white/10 rounded-full overflow-hidden border border-white/10">
-                  <div
-                    className="h-full bg-white rounded-full transition-all duration-1000"
-                    style={{ width: `${progressPct}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs opacity-60 mt-2">
-                  <span>{redemptionsInCycle} redeemed</span>
-                  <span>{6 - redemptionsInCycle} more to earn ₹3,000</span>
-                </div>
-                <div className="mt-6 flex gap-6">
-                  <div>
-                    <div className="text-xl font-black">{fullCycles}</div>
-                    <div className="text-xs opacity-60 uppercase tracking-widest">Cycles Completed</div>
-                  </div>
-                  <div>
-                    <div className="text-xl font-black">₹{totalEarned.toLocaleString("en-IN")}</div>
-                    <div className="text-xs opacity-60 uppercase tracking-widest">Total Earned</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+
 
             {/* Coupon Inventory */}
             <div className="bg-secondary/30 border border-border rounded-[3rem] p-8">
@@ -286,11 +250,11 @@ export default function StorefrontAgentDashboard() {
               <h3 className="text-lg font-black mb-6 uppercase tracking-widest">How It Works</h3>
               <ol className="space-y-5">
                 {[
-                  { step: "1", text: "Generate a batch of ₹500 coupons." },
+                  { step: "1", text: "Generate a batch of ₹500 discount coupons." },
                   { step: "2", text: "Print the PDF and distribute to local customers." },
-                  { step: "3", text: "Each coupon gives ₹500 off on BYLYF." },
-                  { step: "4", text: "Once 6 coupons are redeemed, you earn ₹3,000." },
-                  { step: "5", text: "Cycle resets — keep distributing to earn more!" },
+                  { step: "3", text: "Customers get ₹500 OFF on their first order." },
+                  { step: "4", text: "You earn ₹500 for every Lucky Draw item they buy." },
+                  { step: "5", text: "Track your earnings and request withdrawals." },
                 ].map(item => (
                   <li key={item.step} className="flex items-start gap-4">
                     <div className="w-7 h-7 rounded-full bg-violet-600 text-white font-black text-xs flex items-center justify-center shrink-0">
@@ -310,12 +274,8 @@ export default function StorefrontAgentDashboard() {
               </h3>
               <div className="space-y-4">
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Completed Cycles</span>
-                  <span className="font-black">{fullCycles}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Rate Per Cycle</span>
-                  <span className="font-black">₹3,000</span>
+                  <span className="text-sm text-muted-foreground">Commission Rate</span>
+                  <span className="font-black">₹500 / item</span>
                 </div>
                 <div className="flex justify-between pt-4 border-t border-border">
                   <span className="text-sm font-bold">Total Earned</span>

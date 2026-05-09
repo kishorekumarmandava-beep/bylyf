@@ -231,11 +231,8 @@ export default function CheckoutPage() {
             const referralCode = localStorage.getItem("bylyf_referral_code");
 
             if (couponsEarned > 0 && referralCode) {
-              if (agentConfig.commissionType === "fixed") {
-                commissionEarned = agentConfig.commissionValue;
-              } else {
-                commissionEarned = (grandTotal * agentConfig.commissionValue) / 100;
-              }
+              // Commission is fixed at ₹500 per lucky draw coupon item earned
+              commissionEarned = couponsEarned * 500;
             }
 
             // 5. Save Order to Firestore

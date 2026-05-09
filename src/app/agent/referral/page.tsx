@@ -46,20 +46,12 @@ export default function ReferralAgentDashboard() {
   };
 
   const totalSales = orders.reduce((s, o) => s + (o.total || 0), 0);
-  const commission = Math.floor(totalSales * 0.05); // 5% commission
+  const totalCoupons = orders.reduce((s, o) => s + (o.couponsEarned || 0), 0);
+  const commission = totalCoupons * 500;
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink);
     toast.success("Referral link copied!");
   };
-
-  const MILESTONE_STEPS = [
-    { sales: 10, label: "Bronze", reward: "₹500 Bonus" },
-    { sales: 25, label: "Silver", reward: "₹1,500 Bonus" },
-    { sales: 50, label: "Gold", reward: "₹5,000 Bonus + Gift" },
-    { sales: 100, label: "Platinum", reward: "₹15,000 + Exclusive Perks" },
-  ];
-  const nextMilestone = MILESTONE_STEPS.find(m => orders.length < m.sales) ?? MILESTONE_STEPS[MILESTONE_STEPS.length - 1];
-  const milestoneProgress = Math.min((orders.length / nextMilestone.sales) * 100, 100);
 
   return (
     <main className="min-h-screen bg-background">
@@ -77,7 +69,7 @@ export default function ReferralAgentDashboard() {
               Welcome, {profile?.displayName?.split(" ")[0]} 👋
             </h1>
             <p className="text-muted-foreground mt-2">
-              Earn 5% commission on every order placed through your referral link.
+              Earn ₹500 commission for every Lucky Draw coupon earned by your referrals.
             </p>
           </div>
           <button
@@ -114,7 +106,7 @@ export default function ReferralAgentDashboard() {
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
               <div className="relative z-10">
                 <h3 className="text-2xl font-black mb-2">Your Referral Link</h3>
-                <p className="text-blue-100 text-sm mb-6">Share this link. Earn 5% on every order placed through it.</p>
+                <p className="text-blue-100 text-sm mb-6">Share this link. Earn ₹500 for every coupon-eligible item bought through it.</p>
                 <div className="flex gap-3">
                   <input
                     readOnly
@@ -188,7 +180,7 @@ export default function ReferralAgentDashboard() {
                       </div>
                       <div className="text-right">
                         <div className="font-black">₹{o.total?.toLocaleString("en-IN")}</div>
-                        <div className="text-xs text-green-600 font-bold">+₹{Math.floor(o.total * 0.05)} comm.</div>
+                        <div className="text-xs text-green-600 font-bold">+₹{(o.couponsEarned || 0) * 500} comm.</div>
                       </div>
                     </div>
                   ))}
@@ -200,35 +192,7 @@ export default function ReferralAgentDashboard() {
           {/* Right: Milestones + Info */}
           <div className="lg:col-span-4 space-y-8">
 
-            {/* Milestone Progress */}
-            <div className="bg-secondary/30 border border-border rounded-[3rem] p-8">
-              <h3 className="text-lg font-black mb-2 flex items-center gap-2">
-                <Award className="w-5 h-5 text-primary" />
-                Milestone Progress
-              </h3>
-              <p className="text-xs text-muted-foreground mb-6">Next: <strong>{nextMilestone.label}</strong> — {nextMilestone.reward}</p>
-              <div className="flex justify-between text-xs font-bold mb-2">
-                <span>{orders.length} orders</span>
-                <span>{nextMilestone.sales} needed</span>
-              </div>
-              <div className="h-3 bg-secondary rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-blue-500 rounded-full transition-all duration-1000"
-                  style={{ width: `${milestoneProgress}%` }}
-                />
-              </div>
-              <div className="mt-6 space-y-3">
-                {MILESTONE_STEPS.map((m, i) => (
-                  <div key={i} className={`flex items-center justify-between p-3 rounded-xl text-xs font-bold ${orders.length >= m.sales ? "bg-green-500/10 text-green-600" : "bg-secondary text-muted-foreground"}`}>
-                    <span className="flex items-center gap-2">
-                      {orders.length >= m.sales ? <CheckCircle2 className="w-3 h-3" /> : <div className="w-3 h-3 rounded-full border border-current" />}
-                      {m.label} ({m.sales} orders)
-                    </span>
-                    <span>{m.reward}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+
 
             {/* Commission Breakdown */}
             <div className="bg-secondary/30 border border-border rounded-[3rem] p-8">
@@ -242,7 +206,7 @@ export default function ReferralAgentDashboard() {
                   <span className="font-black">₹{totalSales.toLocaleString("en-IN")}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Commission (5%)</span>
+                  <span className="text-sm text-muted-foreground">Commission (₹500/coupon)</span>
                   <span className="font-black text-green-600">₹{commission.toLocaleString("en-IN")}</span>
                 </div>
                 <div className="flex justify-between pt-4 border-t border-border">
