@@ -163,9 +163,10 @@ export default function CheckoutPage() {
       });
 
       const orderDataResponse = await response.json();
+      console.log("Order Creation Response:", orderDataResponse);
 
       if (!response.ok) {
-        throw new Error(orderDataResponse.error || "Failed to create order");
+        throw new Error(orderDataResponse.error || `Failed to create order (Status: ${response.status})`);
       }
 
       // 2. Open Razorpay Checkout
