@@ -15,19 +15,69 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-export default function LuckyDrawPage() {
-  const [totalEntries, setTotalEntries] = useState(742);
-  const targetEntries = 1000;
-  const progress = (totalEntries / targetEntries) * 100;
+import { db } from "@/lib/firebase";
+import { collection, query, orderBy, limit, onSnapshot, getDoc, doc, getDocs, where } from "firebase/firestore";
 
-  // Mock real-time entries
-  const [recentEntries, setRecentEntries] = useState([
-    { id: "BY-8821", name: "Kishore K.", location: "Hyderabad", time: "Just now" },
-    { id: "BY-8819", name: "Ananya R.", location: "Mumbai", time: "2 mins ago" },
-    { id: "BY-8815", name: "Suresh M.", location: "Bangalore", time: "15 mins ago" },
-    { id: "BY-8812", name: "Priya S.", location: "Chennai", time: "1 hour ago" },
-    { id: "BY-8809", name: "Rahul V.", location: "Delhi", time: "3 hours ago" },
-  ]);
+export default function LuckyDrawPage() {
+  const [totalEntries, setTotalEntries] = useState(0);
+  const [targetEntries, setTargetEntries] = useState(1000);
+  const [loading, setLoading] = useState(true);
+  const [recentEntries, setRecentEntries] = useState<any[]>([]);
+
+  useEffect(() => {
+    // 1. Fetch Config
+    const fetchConfig = async () => {
+      const docRef = doc(db, "settings", "agent_config");
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setTargetEntries(data.drawTriggerCount || 1000);
+      }
+    };
+    fetchConfig();
+
+    // 2. Listen for total count and recent entries
+    const q = query(
+      collection(db, "lucky_draw_entries"),
+      orderBy("createdAt", "desc"),
+      limit(10)
+    );
+
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      // Get real total count (this is expensive on large collections, but for now it's fine)
+      // In production, we'd use a counter doc.
+      const totalSnap = await getDocs(collection(db, "lucky_draw_entries"));
+      setTotalEntries(totalSnap.size);
+
+      const entries = await Promise.all(snapshot.docs.map(async (docSnap) => {
+        const data = docSnap.data();
+        
+        // Fetch user name (masked)
+        let maskedName = "Participant";
+        if (data.userId) {
+          const userSnap = await getDocs(query(collection(db, "users"), where("uid", "==", data.userId)));
+          if (!userSnap.empty) {
+            const name = userSnap.docs[0].data().displayName || "User";
+            maskedName = name.split(" ").map((n: string) => n[0] + "***").join(" ");
+          }
+        }
+
+        return {
+          id: data.couponId,
+          name: maskedName,
+          location: "Verified Purchase",
+          time: data.createdAt?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || "Just now"
+        };
+      }));
+      
+      setRecentEntries(entries);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const progress = (totalEntries / targetEntries) * 100;
 
   return (
     <main className="min-h-screen bg-background">
@@ -106,7 +156,7 @@ export default function LuckyDrawPage() {
                 </div>
                 <div className="space-y-4">
                   <div className="w-10 h-10 bg-background rounded-xl flex items-center justify-center font-black border border-border">2</div>
-                  <p className="font-bold text-muted-foreground">Every ₹999 spent on eligible products earns you 1 coupon.</p>
+                  <p className="font-bold text-muted-foreground">The draw will trigger automatically once we hit {targetEntries} coupons!</p>
                 </div>
               </div>
             </div>
