@@ -144,7 +144,6 @@ export default function AdminAgentsPage() {
               ))}
             </div>
           )}
-        </div>
       </div>
     </div>
   );
