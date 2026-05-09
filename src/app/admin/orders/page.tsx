@@ -42,7 +42,7 @@ export default function AdminOrdersPage() {
   };
 
   const exportToCSV = () => {
-    const headers = ["Order ID", "Date", "Customer", "Phone", "State", "Subtotal", "Discount", "Tax (CGST)", "Tax (SGST)", "Tax (IGST)", "Total", "Coupons Earned", "Referral Code", "Agent Comm."];
+    const headers = ["Order ID", "Date", "Customer", "Phone", "State", "Subtotal", "Discount", "Tax (CGST)", "Tax (SGST)", "Tax (IGST)", "Total", "Coupons Earned", "Coupon IDs", "Referral Code", "Agent Comm."];
     
     const rows = orders.map(o => {
       // Calculate tax breakdown (assuming stored or re-calculating)
@@ -62,6 +62,7 @@ export default function AdminOrdersPage() {
         isInterState ? tax.toFixed(2) : 0,
         o.total,
         o.couponsEarned || 0,
+        o.couponIds ? o.couponIds.join("; ") : "None",
         o.referralCode || "Direct",
         o.agentCommission || 0
       ];
@@ -113,6 +114,7 @@ export default function AdminOrdersPage() {
                     <th className="px-8 py-5 text-xs font-black uppercase tracking-widest">Order</th>
                     <th className="px-8 py-5 text-xs font-black uppercase tracking-widest">Customer</th>
                     <th className="px-8 py-5 text-xs font-black uppercase tracking-widest">Total</th>
+                    <th className="px-8 py-5 text-xs font-black uppercase tracking-widest">Coupons</th>
                     <th className="px-8 py-5 text-xs font-black uppercase tracking-widest">Status</th>
                     <th className="px-8 py-5 text-xs font-black uppercase tracking-widest">Attribution</th>
                     <th className="px-8 py-5 text-xs font-black uppercase tracking-widest"></th>
@@ -132,6 +134,12 @@ export default function AdminOrdersPage() {
                       <td className="px-8 py-6">
                         <div className="font-black text-sm">₹{order.total.toLocaleString('en-IN')}</div>
                         <div className="text-[10px] text-success font-black uppercase">Paid</div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="font-black text-sm">{order.couponsEarned || 0}</div>
+                        <div className="text-[10px] text-muted-foreground font-mono break-all max-w-[150px]">
+                          {order.couponIds?.join(", ")}
+                        </div>
                       </td>
                       <td className="px-8 py-6">
                         <div className="inline-flex px-3 py-1 bg-success/10 text-success rounded-full text-[10px] font-black uppercase tracking-widest">

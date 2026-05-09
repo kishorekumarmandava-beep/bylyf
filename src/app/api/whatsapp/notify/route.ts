@@ -14,7 +14,8 @@ export async function POST(req: Request) {
           data.customerName,
           data.orderId,
           data.couponsEarned.toString(),
-          data.grandTotal.toString()
+          data.grandTotal.toString(),
+          data.couponIds?.length > 0 ? data.couponIds.join(", ") : "N/A"
         ]
       });
 

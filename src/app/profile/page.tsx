@@ -22,13 +22,14 @@ import { signOut } from "firebase/auth";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-type Tab = "overview" | "orders" | "library" | "settings";
+type Tab = "overview" | "orders" | "library" | "settings" | "coupons";
 
 export default function ProfilePage() {
   const { user, profile } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [orders, setOrders] = useState<any[]>([]);
+  const [coupons, setCoupons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,25 +38,35 @@ export default function ProfilePage() {
       return;
     }
 
-    // Fetch real orders from Firestore
-    const fetchOrders = async () => {
+    const fetchData = async () => {
       try {
-        const q = query(
+        // Fetch Orders
+        const qOrders = query(
           collection(db, "orders"), 
           where("userId", "==", user.uid),
           orderBy("createdAt", "desc")
         );
-        const snapshot = await getDocs(q);
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setOrders(data);
+        const orderSnap = await getDocs(qOrders);
+        const orderData = orderSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setOrders(orderData);
+
+        // Fetch Coupons
+        const qCoupons = query(
+          collection(db, "lucky_draw_entries"),
+          where("userId", "==", user.uid),
+          orderBy("createdAt", "desc")
+        );
+        const couponSnap = await getDocs(qCoupons);
+        const couponData = couponSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setCoupons(couponData);
       } catch (err) {
-        console.error("Fetch Orders Error:", err);
+        console.error("Fetch Data Error:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchOrders();
+    fetchData();
   }, [user, router]);
 
   const handleSignOut = async () => {
@@ -86,6 +97,7 @@ export default function ProfilePage() {
               {[
                 { id: "overview", label: "Overview", icon: User },
                 { id: "library", label: "My Library", icon: Download },
+                { id: "coupons", label: "Lucky Draw", icon: Zap },
                 { id: "orders", label: "Order History", icon: ShoppingBag },
                 { id: "settings", label: "Settings", icon: Settings }
               ].map((tab) => (
@@ -245,6 +257,59 @@ export default function ProfilePage() {
                     <div className="p-12 text-center bg-secondary/20 rounded-[3rem] border-2 border-dashed border-border">
                       <ShoppingBag className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                       <p className="text-muted-foreground font-bold">You haven't placed any orders yet.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "coupons" && (
+              <div className="space-y-8 animate-in">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <h2 className="text-3xl font-black tracking-tight">Lucky Draw Coupons</h2>
+                    <p className="text-muted-foreground mt-2">All your active entries in the upcoming bumper draws.</p>
+                  </div>
+                  <div className="bg-primary/10 text-primary px-6 py-3 rounded-2xl border border-primary/20">
+                    <div className="text-xs font-black uppercase tracking-widest opacity-60">Total Coupons</div>
+                    <div className="text-2xl font-black">{coupons.length}</div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {coupons.map((coupon) => (
+                    <div key={coupon.id} className="bg-secondary/30 rounded-[2rem] border border-border p-6 relative overflow-hidden group hover:border-primary/50 transition-all">
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-primary/10 transition-all"></div>
+                      
+                      <div className="relative z-10">
+                        <div className="flex justify-between items-start mb-6">
+                          <div className="w-12 h-12 bg-background rounded-xl border border-border flex items-center justify-center text-primary">
+                            <Zap className="w-6 h-6 fill-current" />
+                          </div>
+                          <span className="px-3 py-1 bg-success/10 text-success rounded-full text-[10px] font-black uppercase tracking-widest">
+                            {coupon.status}
+                          </span>
+                        </div>
+
+                        <div className="space-y-1 mb-6">
+                          <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Coupon ID</div>
+                          <div className="text-2xl font-black tracking-tighter text-primary">{coupon.couponId}</div>
+                        </div>
+
+                        <div className="pt-6 border-t border-border/50">
+                          <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Linked Item</div>
+                          <div className="text-sm font-bold truncate">{coupon.itemTitle}</div>
+                          <div className="text-[10px] text-muted-foreground mt-2">Issued on {coupon.createdAt?.toDate().toLocaleDateString()}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {coupons.length === 0 && (
+                    <div className="col-span-full py-20 text-center bg-secondary/20 rounded-[3rem] border-2 border-dashed border-border">
+                      <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground font-bold">No coupons found. Buy eligible items to enter!</p>
+                      <Link href="/#catalog" className="mt-4 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-black text-xs uppercase tracking-widest inline-block">Shop Eligible Products</Link>
                     </div>
                   )}
                 </div>

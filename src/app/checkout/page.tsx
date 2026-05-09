@@ -190,13 +190,34 @@ export default function CheckoutPage() {
 
             // 4. Calculate Lucky Draw Coupons & Agent Commission
             const agentConfigSnap = await getDoc(doc(db, "settings", "agent_config"));
-            const agentConfig = agentConfigSnap.exists() ? agentConfigSnap.data() : { commissionType: 'fixed', commissionValue: 500, minSpendForCoupon: 999 };
+            const agentConfig = agentConfigSnap.exists() ? agentConfigSnap.data() : { commissionType: 'fixed', commissionValue: 500, minSpendForCoupon: 2500 };
             
-            const eligibleSpend = items
-              .filter(i => mockProducts.find(p => p.id === i.id)?.luckyDrawEligible)
-              .reduce((acc, i) => acc + (i.sellingPrice * i.quantity), 0);
+            let generatedCouponIds: string[] = [];
+            if (grandTotal >= 2500) {
+              const eligibleItems = items.filter(i => {
+                const product = mockProducts.find(p => p.id === i.id);
+                return product?.luckyDrawEligible;
+              });
+
+              for (const item of eligibleItems) {
+                for (let j = 0; j < item.quantity; j++) {
+                  const couponId = `BY-${Math.floor(10000 + Math.random() * 90000)}`;
+                  generatedCouponIds.push(couponId);
+                  
+                  // Save to Firestore
+                  await addDoc(collection(db, "lucky_draw_entries"), {
+                    couponId,
+                    userId: user?.uid,
+                    orderId: razorResponse.razorpay_order_id,
+                    itemTitle: item.title,
+                    status: "active",
+                    createdAt: serverTimestamp()
+                  });
+                }
+              }
+            }
             
-            const couponsEarned = Math.floor(eligibleSpend / agentConfig.minSpendForCoupon);
+            const couponsEarned = generatedCouponIds.length;
             
             let commissionEarned = 0;
             const referralCode = localStorage.getItem("bylyf_referral_code");
@@ -226,6 +247,7 @@ export default function CheckoutPage() {
               total: grandTotal,
               shippingAddress: address,
               couponsEarned,
+              couponIds: generatedCouponIds,
               referralCode: referralCode || null,
               agentCommission: commissionEarned,
               paymentId: razorResponse.razorpay_payment_id,
@@ -258,6 +280,7 @@ export default function CheckoutPage() {
                     customerName: address.fullName,
                     orderId: razorResponse.razorpay_order_id,
                     couponsEarned,
+                    couponIds: generatedCouponIds,
                     grandTotal,
                     agentPhone: agentDetails?.phoneNumber,
                     agentName: agentDetails?.displayName,
