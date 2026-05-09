@@ -51,7 +51,7 @@ export async function POST(req: Request) {
                      (typeof error === 'string' ? error : JSON.stringify(error));
 
     const keyPrefix = key_id ? `(Key: ${key_id.substring(0, 14)}...)` : "(Key missing)";
-    const secretInfo = key_secret ? `(Secret Length: ${key_secret.length})` : "(Secret missing)";
+    const secretInfo = key_secret ? `(Secret: ${key_secret.substring(0, 4)}...${key_secret.substring(key_secret.length - 4)})` : "(Secret missing)";
 
     return NextResponse.json(
       { error: `Razorpay API Error ${keyPrefix} ${secretInfo}: ` + errorMsg },
