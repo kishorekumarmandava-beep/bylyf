@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
-import Navbar from "@/components/layout/Navbar";
-import AdminNav from "@/components/admin/AdminNav";
 import { 
   ShieldCheck, 
   Search, 
@@ -161,11 +159,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  useEffect(() => {
-    if (!loading && profile && profile.role !== "admin") {
-      toast.error("Access Denied: Admins Only");
-    }
-  }, [profile, loading]);
+
 
   const filteredUsers = users.filter(u =>
     u.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -177,11 +171,7 @@ export default function AdminUsersPage() {
   const agentCount = users.filter(u => u.role === "agent" || u.role === "storefront_agent").length;
 
   return (
-    <main className="min-h-screen bg-background">
-      <Navbar />
-      <AdminNav />
-
-      <div className="max-w-7xl mx-auto px-4 py-12">
+    <div className="max-w-7xl mx-auto px-4 py-12">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
           <div>
@@ -285,6 +275,6 @@ export default function AdminUsersPage() {
           )}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

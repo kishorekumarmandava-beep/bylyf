@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import Navbar from "@/components/layout/Navbar";
-import AdminNav from "@/components/admin/AdminNav";
 import { 
   Settings, 
   Save, 
@@ -57,14 +55,10 @@ export default function AdminSettingsPage() {
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center font-black">LOADING SETTINGS...</div>;
+
 
   return (
-    <main className="min-h-screen bg-background">
-      <Navbar />
-      <AdminNav />
-
-      <div className="max-w-4xl mx-auto px-4 py-12">
+    <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="flex justify-between items-center mb-12">
           <div>
             <h1 className="text-4xl font-black tracking-tight">Global Settings</h1>
@@ -169,7 +163,7 @@ export default function AdminSettingsPage() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
 
