@@ -52,7 +52,7 @@ export default function StorefrontAgentDashboard() {
   const redeemedCoupons = coupons.filter(c => c.status === "redeemed");
   const redemptionsInCycle = redeemedCoupons.length % 6;
   const fullCycles = Math.floor(redeemedCoupons.length / 6);
-  const totalEarned = fullCycles * 3000;
+  const totalEarned = fullCycles * 500;
   const progressPct = (redemptionsInCycle / 6) * 100;
 
   const generateBatch = async (count: number = 10) => {
@@ -148,7 +148,7 @@ export default function StorefrontAgentDashboard() {
               Welcome, {profile?.displayName?.split(" ")[0]} 👋
             </h1>
             <p className="text-muted-foreground mt-2">
-              Distribute ₹500 discount coupons. You will receive ₹3,000 commission for every 6 coupons redeemed.
+              Distribute ₹500 discount coupons. You will receive ₹500 commission for every 6 coupons redeemed.
             </p>
           </div>
           <div className="flex gap-3">
@@ -201,7 +201,7 @@ export default function StorefrontAgentDashboard() {
                     <div className="text-xs font-bold uppercase tracking-widest opacity-60 mt-1">Redemptions in current cycle</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-3xl font-black">₹3,000</div>
+                    <div className="text-3xl font-black">₹500</div>
                     <div className="text-xs font-bold uppercase tracking-widest opacity-60">Payout for 6 redemptions</div>
                   </div>
                 </div>
@@ -213,7 +213,7 @@ export default function StorefrontAgentDashboard() {
                 </div>
                 <div className="flex justify-between text-xs opacity-60 mt-2">
                   <span>{redemptionsInCycle} redeemed</span>
-                  <span>{6 - redemptionsInCycle} more to earn ₹3,000</span>
+                  <span>{6 - redemptionsInCycle} more to earn ₹500</span>
                 </div>
               </div>
             </div>
@@ -281,7 +281,7 @@ export default function StorefrontAgentDashboard() {
                   { step: "1", text: "Generate a batch of ₹500 discount coupons." },
                   { step: "2", text: "Print the PDF and distribute to local customers." },
                   { step: "3", text: "Customers get ₹500 OFF on their first order." },
-                  { step: "4", text: "Once 6 coupons are redeemed, you earn ₹3,000." },
+                  { step: "4", text: "Once 6 coupons are redeemed, you earn ₹500." },
                   { step: "5", text: "The cycle resets—keep distributing to earn more!" },
                 ].map(item => (
                   <li key={item.step} className="flex items-start gap-4">
@@ -303,7 +303,7 @@ export default function StorefrontAgentDashboard() {
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Commission Cycle</span>
-                  <span className="font-black">₹3,000 per 6 redemptions</span>
+                  <span className="font-black">₹500 per 6 redemptions</span>
                 </div>
                 <div className="flex justify-between pt-4 border-t border-border">
                   <span className="text-sm font-bold">Total Earned</span>
