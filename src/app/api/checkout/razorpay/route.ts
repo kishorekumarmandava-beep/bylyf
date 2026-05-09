@@ -13,6 +13,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Razorpay keys are not configured" }, { status: 500 });
     }
 
+    console.log("Using Razorpay Key ID prefix:", key_id.substring(0, 8) + "...");
+    console.log("Using Razorpay Secret prefix:", key_secret.substring(0, 4) + "...");
+
     const razorpay = new Razorpay({
       key_id: key_id,
       key_secret: key_secret,
@@ -48,7 +51,7 @@ export async function POST(req: Request) {
                      (typeof error === 'string' ? error : JSON.stringify(error));
 
     return NextResponse.json(
-      { error: "Razorpay API Error: " + errorMsg },
+      { error: `Razorpay API Error (Key: ${key_id.substring(0, 8)}...): ` + errorMsg },
       { status: 500 }
     );
   }
