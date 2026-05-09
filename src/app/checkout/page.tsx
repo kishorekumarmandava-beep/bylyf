@@ -35,11 +35,19 @@ const STORE_STATE = "Telangana"; // Default store location for tax calculation
 
 export default function CheckoutPage() {
   const { items, getTotalPrice, clearCart } = useCartStore();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+
+  // Redirect if logged out
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/");
+      toast.error("Please login to proceed to checkout.");
+    }
+  }, [user, authLoading, router]);
 
   // Form State
   const [address, setAddress] = useState({
