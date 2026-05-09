@@ -11,12 +11,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && (!profile || profile.role !== "admin")) {
+    if (!loading && (!profile || (profile.role !== "admin" && profile.role !== "grievance_officer"))) {
       router.push("/");
     }
   }, [profile, loading, router]);
 
-  if (loading || !profile || profile.role !== "admin") {
+  if (loading || !profile || (profile.role !== "admin" && profile.role !== "grievance_officer")) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />

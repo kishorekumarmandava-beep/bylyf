@@ -17,12 +17,13 @@ import { collection, query, getDocs, updateDoc, doc, orderBy } from "firebase/fi
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 
-type Role = "customer" | "agent" | "storefront_agent" | "admin" | "user";
+type Role = "customer" | "agent" | "storefront_agent" | "admin" | "user" | "grievance_officer";
 
 const ROLES: { value: Role; label: string; color: string }[] = [
   { value: "customer", label: "Customer", color: "bg-secondary text-muted-foreground" },
   { value: "agent", label: "Agent", color: "bg-blue-500/10 text-blue-600" },
   { value: "storefront_agent", label: "Storefront Agent", color: "bg-violet-500/10 text-violet-600" },
+  { value: "grievance_officer", label: "Grievance Officer", color: "bg-amber-500/10 text-amber-600" },
   { value: "admin", label: "Admin", color: "bg-primary text-primary-foreground" },
 ];
 

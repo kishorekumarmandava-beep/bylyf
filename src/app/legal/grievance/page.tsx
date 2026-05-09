@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import { 
   Scale, 
@@ -9,9 +9,207 @@ import {
   MapPin, 
   Clock, 
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  Send,
+  Search,
+  MessageSquare,
+  AlertCircle
 } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
+import { db } from "@/lib/firebase";
+import { collection, addDoc, serverTimestamp, query, where, getDocs, limit } from "firebase/firestore";
+import toast from "react-hot-toast";
+import { cn } from "@/lib/utils";
+
+function GrievanceForm() {
+  const { user, profile } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    orderId: "",
+    category: "General",
+    subject: "",
+    description: ""
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      toast.error("Please login to raise a grievance.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const ticketId = `GR-${Math.floor(10000 + Math.random() * 90000)}`;
+      await addDoc(collection(db, "tickets"), {
+        ticketId,
+        userId: user.uid,
+        userName: profile?.displayName || "Anonymous",
+        userPhone: user.phoneNumber,
+        ...formData,
+        status: "open",
+        priority: "medium",
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        updates: [{
+          status: "open",
+          note: "Ticket created successfully.",
+          timestamp: new Date()
+        }]
+      });
+      toast.success(`Grievance submitted! Ticket ID: ${ticketId}`);
+      setFormData({ orderId: "", category: "General", subject: "", description: "" });
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <label className="text-sm font-bold ml-1">Order ID (Optional)</label>
+          <input 
+            type="text"
+            value={formData.orderId}
+            onChange={(e) => setFormData({...formData, orderId: e.target.value})}
+            placeholder="e.g. #123456"
+            className="w-full px-5 py-4 bg-background border border-border rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all"
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-bold ml-1">Category</label>
+          <select 
+            value={formData.category}
+            onChange={(e) => setFormData({...formData, category: e.target.value})}
+            className="w-full px-5 py-4 bg-background border border-border rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all font-bold"
+          >
+            <option>General</option>
+            <option>Payment Issue</option>
+            <option>Delivery Delay</option>
+            <option>Wrong Product</option>
+            <option>Refund Request</option>
+            <option>Agent Complaint</option>
+          </select>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-bold ml-1">Subject</label>
+        <input 
+          type="text"
+          required
+          value={formData.subject}
+          onChange={(e) => setFormData({...formData, subject: e.target.value})}
+          placeholder="Brief summary of your issue"
+          className="w-full px-5 py-4 bg-background border border-border rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all"
+        />
+      </div>
+      <div className="space-y-2">
+        <label className="text-sm font-bold ml-1">Detailed Description</label>
+        <textarea 
+          required
+          rows={4}
+          value={formData.description}
+          onChange={(e) => setFormData({...formData, description: e.target.value})}
+          placeholder="Please describe your issue in detail..."
+          className="w-full px-5 py-4 bg-background border border-border rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all resize-none"
+        />
+      </div>
+      <button 
+        disabled={loading}
+        className="w-full py-5 bg-primary text-primary-foreground rounded-[1.5rem] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-[1.02] transition-all shadow-xl shadow-primary/20 disabled:opacity-50"
+      >
+        {loading ? "SUBMITTING..." : "Submit Grievance"}
+        <Send className="w-5 h-5" />
+      </button>
+    </form>
+  );
+}
+
+function TicketTracker() {
+  const [ticketId, setTicketId] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [ticket, setTicket] = useState<any>(null);
+
+  const handleTrack = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setTicket(null);
+    try {
+      const q = query(collection(db, "tickets"), where("ticketId", "==", ticketId.toUpperCase()), limit(1));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        toast.error("Ticket ID not found.");
+      } else {
+        setTicket(snap.docs[0].data());
+      }
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      <form onSubmit={handleTrack} className="flex gap-4">
+        <input 
+          type="text"
+          required
+          value={ticketId}
+          onChange={(e) => setTicketId(e.target.value)}
+          placeholder="Enter Ticket ID (e.g. GR-12345)"
+          className="flex-1 px-5 py-4 bg-background border border-border rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all font-mono"
+        />
+        <button 
+          disabled={loading}
+          className="px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-black flex items-center justify-center disabled:opacity-50"
+        >
+          {loading ? "..." : <Search className="w-5 h-5" />}
+        </button>
+      </form>
+
+      {ticket && (
+        <div className="text-left bg-background rounded-3xl border border-border p-8 animate-in fade-in slide-in-from-bottom-4">
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Ticket ID</div>
+              <div className="text-2xl font-black text-primary font-mono">{ticket.ticketId}</div>
+            </div>
+            <div className={cn(
+              "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest",
+              ticket.status === "open" ? "bg-amber-500/10 text-amber-600" :
+              ticket.status === "resolved" ? "bg-success/10 text-success" : "bg-secondary text-muted-foreground"
+            )}>
+              {ticket.status}
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Subject</div>
+              <div className="font-bold">{ticket.subject}</div>
+            </div>
+            
+            <div className="p-4 bg-secondary/30 rounded-2xl border border-border">
+              <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
+                <MessageSquare className="w-3 h-3" /> Latest Update
+              </div>
+              <div className="text-sm font-medium leading-relaxed">
+                {ticket.updates?.[ticket.updates.length - 1]?.note || "Awaiting initial review."}
+              </div>
+              <div className="text-[10px] text-muted-foreground mt-2 font-bold uppercase">
+                Updated on {new Date(ticket.updatedAt?.toDate?.() || Date.now()).toLocaleDateString()}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function GrievancePage() {
   return (
@@ -95,14 +293,19 @@ export default function GrievancePage() {
           </div>
 
           <div className="p-10 lg:p-16 bg-primary/5">
-            <h3 className="text-xl font-black mb-4">How to track your complaint?</h3>
-            <p className="text-muted-foreground leading-relaxed mb-8">
-              Once you raise a grievance, a unique ticket ID will be sent to your registered email and phone number within 48 hours. You can use this ID to track your complaint status on our platform.
-            </p>
-            <button className="px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-bold flex items-center gap-2 hover:scale-105 transition-transform">
-              Track Complaint Status
-              <ChevronRight className="w-5 h-5" />
-            </button>
+            <h3 className="text-xl font-black mb-8">Raise a New Grievance</h3>
+            <GrievanceForm />
+          </div>
+        </div>
+
+        {/* Track Section */}
+        <div className="bg-secondary/20 rounded-[3rem] p-10 lg:p-16 border border-border text-center mb-16">
+          <h2 className="text-3xl font-black mb-4">Already have a Ticket ID?</h2>
+          <p className="text-muted-foreground mb-10 max-w-xl mx-auto">
+            Enter your unique grievance ID to check the current status and resolution details of your complaint.
+          </p>
+          <div className="max-w-md mx-auto">
+            <TicketTracker />
           </div>
         </div>
 

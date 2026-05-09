@@ -22,7 +22,7 @@ import { signOut } from "firebase/auth";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-type Tab = "overview" | "orders" | "library" | "settings" | "coupons";
+type Tab = "overview" | "orders" | "library" | "settings" | "coupons" | "tickets";
 
 export default function ProfilePage() {
   const { user, profile } = useAuth();
@@ -30,6 +30,7 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [orders, setOrders] = useState<any[]>([]);
   const [coupons, setCoupons] = useState<any[]>([]);
+  const [tickets, setTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -59,6 +60,15 @@ export default function ProfilePage() {
         const couponSnap = await getDocs(qCoupons);
         const couponData = couponSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setCoupons(couponData);
+
+        // Fetch Tickets
+        const qTickets = query(
+          collection(db, "tickets"),
+          where("userId", "==", user.uid),
+          orderBy("createdAt", "desc")
+        );
+        const ticketSnap = await getDocs(qTickets);
+        setTickets(ticketSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       } catch (err) {
         console.error("Fetch Data Error:", err);
       } finally {
@@ -99,6 +109,7 @@ export default function ProfilePage() {
                 { id: "library", label: "My Library", icon: Download },
                 { id: "coupons", label: "Lucky Draw", icon: Zap },
                 { id: "orders", label: "Order History", icon: ShoppingBag },
+                { id: "tickets", label: "Grievances", icon: FileText },
                 { id: "settings", label: "Settings", icon: Settings }
               ].map((tab) => (
                 <button
@@ -316,6 +327,63 @@ export default function ProfilePage() {
               </div>
             )}
 
+
+            
+            {activeTab === "tickets" && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
+                <div>
+                  <h2 className="text-3xl font-black tracking-tight">My Grievances</h2>
+                  <p className="text-muted-foreground mt-2">Track the status of your support requests and complaints.</p>
+                </div>
+
+                <div className="space-y-4">
+                  {tickets.map((ticket) => (
+                    <div key={ticket.id} className="p-8 bg-secondary/30 rounded-[2.5rem] border border-border group hover:border-primary/50 transition-all">
+                      <div className="flex flex-col md:flex-row justify-between gap-6">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-primary font-mono">{ticket.ticketId}</span>
+                            <span className={cn(
+                              "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
+                              ticket.status === "open" ? "bg-amber-500/10 text-amber-600" :
+                              ticket.status === "resolved" ? "bg-success/10 text-success" : "bg-secondary text-muted-foreground"
+                            )}>
+                              {ticket.status}
+                            </span>
+                          </div>
+                          <h3 className="text-xl font-black mb-2">{ticket.subject}</h3>
+                          <p className="text-sm text-muted-foreground line-clamp-2 mb-6">{ticket.description}</p>
+                          
+                          <div className="p-4 bg-background/50 rounded-2xl border border-border/50">
+                            <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Latest Update</div>
+                            <div className="text-sm font-bold italic">
+                              "{ticket.updates?.[ticket.updates.length - 1]?.note || "Awaiting initial review."}"
+                            </div>
+                          </div>
+                        </div>
+                        <div className="md:text-right flex flex-col justify-between shrink-0">
+                          <div>
+                            <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Category</div>
+                            <div className="font-bold">{ticket.category}</div>
+                          </div>
+                          <div className="text-[10px] text-muted-foreground font-bold mt-4">
+                            Last activity: {new Date(ticket.updatedAt?.toDate?.() || Date.now()).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {tickets.length === 0 && (
+                    <div className="py-20 text-center bg-secondary/20 rounded-[3rem] border-2 border-dashed border-border">
+                      <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground font-bold">You haven't raised any grievances yet.</p>
+                      <Link href="/legal/grievance" className="mt-4 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-black text-xs uppercase tracking-widest inline-block">Raise a Grievance</Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
             {activeTab === "settings" && (
               <div className="space-y-8 animate-in">
                 <h2 className="text-3xl font-black tracking-tight">Account Settings</h2>
