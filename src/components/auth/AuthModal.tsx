@@ -70,8 +70,19 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setPhoneNumber(value);
   };
 
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const [timer, setTimer] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  const initiateSendOtp = async () => {
     if (phoneNumber.length < 13) {
       toast.error("Please enter your 10-digit phone number after +91");
       return;
@@ -104,6 +115,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       const confirmation = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
       setConfirmationResult(confirmation);
       setStep("otp");
+      setTimer(30); // Set 30 second timer for resend
       toast.success("OTP sent successfully!");
     } catch (error: any) {
       console.error("Auth Error:", error);
@@ -119,6 +131,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await initiateSendOtp();
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
@@ -309,7 +326,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               {step === "otp" && (
                 <form onSubmit={handleVerifyOtp} className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium ml-1">Verification Code</label>
+                    <label className="text-sm font-black ml-1">Verification Code</label>
                     <input 
                       type="text"
                       placeholder="Enter 6-digit OTP"
@@ -322,17 +339,31 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   </div>
                   <button 
                     disabled={loading}
-                    className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                    className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest hover:opacity-90 transition-opacity disabled:opacity-50 shadow-lg shadow-primary/20"
                   >
                     {loading ? "Verifying..." : "Verify & Continue"}
                   </button>
-                  <button 
-                    type="button"
-                    onClick={() => setStep("phone")}
-                    className="w-full text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    Change phone number
-                  </button>
+                  
+                  <div className="flex justify-between items-center px-1">
+                    <button 
+                      type="button"
+                      onClick={() => setStep("phone")}
+                      className="text-xs text-muted-foreground hover:text-primary transition-colors font-bold"
+                    >
+                      Change number
+                    </button>
+                    <button 
+                      type="button"
+                      disabled={timer > 0 || loading}
+                      onClick={initiateSendOtp}
+                      className={cn(
+                        "text-xs font-black uppercase tracking-widest transition-all",
+                        timer > 0 ? "text-muted-foreground cursor-not-allowed" : "text-primary hover:underline"
+                      )}
+                    >
+                      {timer > 0 ? `Resend in ${timer}s` : "Resend OTP"}
+                    </button>
+                  </div>
                 </form>
               )}
 
