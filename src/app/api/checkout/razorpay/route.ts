@@ -40,8 +40,15 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error("Razorpay Order Error:", error);
+    
+    // Extract the most descriptive error message possible
+    const errorMsg = error.message || 
+                     (error.error && error.error.description) || 
+                     error.description || 
+                     (typeof error === 'string' ? error : JSON.stringify(error));
+
     return NextResponse.json(
-      { error: "Razorpay API Error: " + (error.message || error.description || "Unknown error") },
+      { error: "Razorpay API Error: " + errorMsg },
       { status: 500 }
     );
   }
