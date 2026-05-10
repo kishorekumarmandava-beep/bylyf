@@ -21,7 +21,13 @@ service cloud.firestore {
 
     // User Profiles
     match /users/{userId} {
-      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin() || isBootstrapAdmin());
+      allow read: if isSignedIn() && (
+        request.auth.uid == userId || 
+        isAdmin() || 
+        isBootstrapAdmin() || 
+        resource.data.role == 'agent' || 
+        resource.data.role == 'storefront_agent'
+      );
       allow create: if isSignedIn() && request.auth.uid == userId;
       // Allow self-update; bootstrap admin can update their own role field
       allow update: if isSignedIn() && (
@@ -58,7 +64,7 @@ service cloud.firestore {
 
     // Lucky Draw Entries
     match /lucky_draw_entries/{entryId} {
-      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin() || isBootstrapAdmin());
+      allow read: if true;
       allow create: if isSignedIn();
       allow update: if isAdmin() || isBootstrapAdmin();
     }
@@ -74,6 +80,13 @@ service cloud.firestore {
     match /audit_logs/{logId} {
       allow create: if isSignedIn();
       allow read: if isAdmin() || isBootstrapAdmin();
+    }
+
+    // Commissions (Privacy-focused tracking)
+    match /commissions/{commissionId} {
+      allow read: if isSignedIn() && (resource.data.agentUid == request.auth.uid || isAdmin() || isBootstrapAdmin());
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || isBootstrapAdmin();
     }
   }
 }

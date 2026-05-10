@@ -52,15 +52,8 @@ export default function LuckyDrawPage() {
       const entries = await Promise.all(snapshot.docs.map(async (docSnap) => {
         const data = docSnap.data();
         
-        // Fetch user name (masked)
-        let maskedName = "Participant";
-        if (data.userId) {
-          const userSnap = await getDocs(query(collection(db, "users"), where("uid", "==", data.userId)));
-          if (!userSnap.empty) {
-            const name = userSnap.docs[0].data().displayName || "User";
-            maskedName = name.split(" ").map((n: string) => n[0] + "***").join(" ");
-          }
-        }
+        // Use pre-computed maskedName if available, else default
+        let maskedName = data.maskedName || "Participant";
 
         return {
           id: data.couponId,

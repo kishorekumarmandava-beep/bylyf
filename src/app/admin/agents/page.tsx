@@ -46,7 +46,8 @@ export default function AdminAgentsPage() {
       await updateDoc(doc(db, "users", userId), {
         agentStatus: "active",
         role: role,
-        agentJoinedAt: new Date()
+        agentJoinedAt: new Date(),
+        referralCode: userId.slice(0, 8).toUpperCase()
       });
       toast.success(`Agent approved as ${role.replace("_", " ")}!`);
       fetchPendingAgents();

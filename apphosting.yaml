@@ -2,6 +2,6 @@ kind: AppHostingConfig
 schemaVersion: v1
 env:
   - variable: NEXT_PUBLIC_RAZORPAY_KEY_ID
-    value: rzp_test_SnViz0lyYoKmGR
+    value: rzp_test_SnbcQetLPCSfSv
   - variable: RAZORPAY_KEY_SECRET
-    value: t0QSZJbKB21L3VHrNWg4Cg6b
+    value: SEdKDl5uWaRFGHJzc7zZNDN8

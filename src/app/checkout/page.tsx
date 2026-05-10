@@ -231,6 +231,7 @@ export default function CheckoutPage() {
                   await addDoc(collection(db, "lucky_draw_entries"), {
                     couponId,
                     userId: user?.uid,
+                    maskedName: address.fullName ? address.fullName.split(" ").map((n: string) => n.length > 1 ? n[0] + "***" : n + "***").join(" ") : "Participant",
                     orderId: razorResponse.razorpay_order_id,
                     itemTitle: item.title,
                     status: "active",
@@ -278,15 +279,36 @@ export default function CheckoutPage() {
 
             await addDoc(collection(db, "orders"), finalOrderData);
             
-            // 6. Trigger WhatsApp Notifications (via API)
+            // 6. Trigger WhatsApp Notifications & Save Commission
             try {
               let agentDetails = null;
+              let agentUid = null;
+
               if (referralCode) {
-                const agentQ = query(collection(db, "users"), where("uid", "==", referralCode)); // Assuming referralCode is uid.slice(0,8)
-                // Note: In production, we'd query by a specific 'referralCode' field
+                const agentQ = query(
+                  collection(db, "users"), 
+                  where("referralCode", "==", referralCode),
+                  where("role", "in", ["agent", "storefront_agent"])
+                );
                 const agentSnap = await getDocs(agentQ);
                 if (!agentSnap.empty) {
-                  agentDetails = agentSnap.docs[0].data();
+                  const agentDoc = agentSnap.docs[0];
+                  agentDetails = agentDoc.data();
+                  agentUid = agentDoc.id;
+                  
+                  // 6a. Create Commission Record (Privacy-focused)
+                  await addDoc(collection(db, "commissions"), {
+                    agentUid,
+                    agentName: agentDetails.displayName || "Agent",
+                    amount: commissionEarned,
+                    saleAmount: grandTotal,
+                    orderId: razorResponse.razorpay_order_id,
+                    customerName: address.fullName, // Minimal info for privacy
+                    couponsEarned: couponsEarned,
+                    couponIds: generatedCouponIds,
+                    status: commissionEarned > 0 ? "earned" : "sale_recorded",
+                    createdAt: serverTimestamp()
+                  });
                 }
               }
 
@@ -309,7 +331,7 @@ export default function CheckoutPage() {
                 })
               });
             } catch (notifyErr) {
-              console.error("Notification Error:", notifyErr);
+              console.error("Notification/Commission Error:", notifyErr);
             }
 
             // 7. Trigger Shiprocket Integration (Physical Items Only)

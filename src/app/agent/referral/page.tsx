@@ -17,7 +17,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 export default function ReferralAgentDashboard() {
   const { user, profile } = useAuth();
   const router = useRouter();
-  const [orders, setOrders] = useState<any[]>([]);
+  const [commissions, setCommissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const referralCode = profile?.referralCode || user?.uid?.slice(0, 8).toUpperCase() || "--------";
@@ -35,9 +35,9 @@ export default function ReferralAgentDashboard() {
   const fetchData = async () => {
     if (!user) return;
     try {
-      const q = query(collection(db, "orders"), where("referralCode", "==", referralCode));
+      const q = query(collection(db, "commissions"), where("agentUid", "==", user.uid));
       const snap = await getDocs(q);
-      setOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setCommissions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     } catch (e) {
       console.error(e);
     } finally {
@@ -45,9 +45,11 @@ export default function ReferralAgentDashboard() {
     }
   };
 
-  const totalSales = orders.reduce((s, o) => s + (o.total || 0), 0);
-  const totalCoupons = orders.reduce((s, o) => s + (o.couponsEarned || 0), 0);
-  const commission = totalCoupons * 500;
+  const totalEarnings = commissions.reduce((s, c) => s + (c.amount || 0), 0);
+  const totalSalesValue = commissions.reduce((s, c) => s + (c.saleAmount || 0), 0);
+  const totalCoupons = commissions.reduce((s, c) => s + (c.couponsEarned || 0), 0);
+  const totalReferrals = commissions.length;
+
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink);
     toast.success("Referral link copied!");
@@ -84,10 +86,10 @@ export default function ReferralAgentDashboard() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
           {[
-            { label: "Total Referrals", value: orders.length, icon: Users, color: "text-blue-600" },
-            { label: "Total Sales", value: `₹${totalSales.toLocaleString("en-IN")}`, icon: ShoppingBag, color: "text-green-600" },
-            { label: "Commission Earned", value: `₹${commission.toLocaleString("en-IN")}`, icon: IndianRupee, color: "text-primary" },
-            { label: "Pending Payout", value: `₹${commission.toLocaleString("en-IN")}`, icon: Clock, color: "text-orange-500" },
+            { label: "Total Referrals", value: totalReferrals, icon: Users, color: "text-blue-600" },
+            { label: "Total Sales", value: `₹${totalSalesValue.toLocaleString("en-IN")}`, icon: ShoppingBag, color: "text-violet-600" },
+            { label: "Coupons Earned", value: totalCoupons, icon: Award, color: "text-amber-500" },
+            { label: "Comm. Earned", value: `₹${totalEarnings.toLocaleString("en-IN")}`, icon: IndianRupee, color: "text-primary" },
           ].map((stat, i) => (
             <div key={i} className="bg-secondary/30 border border-border rounded-[2rem] p-6">
               <stat.icon className={`w-6 h-6 mb-3 ${stat.color}`} />
@@ -161,27 +163,65 @@ export default function ReferralAgentDashboard() {
             {/* Recent Referral Orders */}
             <div className="bg-secondary/30 border border-border rounded-[2.5rem] p-8">
               <h3 className="text-xl font-black mb-6 flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5 text-primary" />
-                Referral Orders
+                <TrendingUp className="w-5 h-5 text-primary" />
+                Recent Commissions
               </h3>
               {loading ? (
                 <div className="py-12 text-center font-black animate-pulse">Loading...</div>
-              ) : orders.length === 0 ? (
+              ) : commissions.length === 0 ? (
                 <div className="py-12 text-center text-muted-foreground italic text-sm">
-                  No orders via your referral link yet. Share it to start earning!
+                  No commissions earned yet. Share your link to start earning!
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {orders.map(o => (
-                    <div key={o.id} className="flex items-center justify-between p-4 bg-background rounded-2xl border border-border">
-                      <div>
-                        <div className="font-bold text-sm">{o.shippingAddress?.fullName || "Customer"}</div>
-                        <div className="text-xs text-muted-foreground">{o.createdAt?.toDate?.().toLocaleDateString()}</div>
+                  {commissions.map(c => (
+                    <div key={c.id} className="p-5 bg-background rounded-[2rem] border border-border">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <div className="font-black text-sm uppercase font-mono text-primary flex items-center gap-2">
+                            Order #{c.orderId?.slice(0, 8) || "N/A"}
+                            {c.status === "sale_recorded" && (
+                              <span className="bg-secondary px-2 py-0.5 rounded text-[8px] tracking-widest">NO COMM.</span>
+                            )}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">
+                            {c.customerName || "Customer"} • {c.createdAt?.toDate?.().toLocaleDateString() || "Date N/A"}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={cn(
+                            "font-black text-lg",
+                            c.amount > 0 ? "text-green-600" : "text-muted-foreground"
+                          )}>
+                            {c.amount > 0 ? `+₹${c.amount.toLocaleString("en-IN")}` : "₹0"}
+                          </div>
+                          <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Commission</div>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-black">₹{o.total?.toLocaleString("en-IN")}</div>
-                        <div className="text-xs text-green-600 font-bold">+₹{(o.couponsEarned || 0) * 500} comm.</div>
+
+                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/50">
+                        <div>
+                          <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Sale Amount</div>
+                          <div className="font-bold text-sm">₹{c.saleAmount?.toLocaleString("en-IN") || "0"}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Coupons</div>
+                          <div className="font-bold text-sm">{c.couponsEarned || 0} Earned</div>
+                        </div>
                       </div>
+
+                      {c.couponIds && c.couponIds.length > 0 && (
+                        <div className="mt-4 p-3 bg-secondary/50 rounded-xl">
+                          <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-2">Coupon IDs</div>
+                          <div className="flex flex-wrap gap-2">
+                            {c.couponIds.map((id: string) => (
+                              <span key={id} className="text-[10px] font-mono font-bold bg-background px-2 py-1 rounded border border-border">
+                                {id}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -198,20 +238,16 @@ export default function ReferralAgentDashboard() {
             <div className="bg-secondary/30 border border-border rounded-[3rem] p-8">
               <h3 className="text-lg font-black mb-6 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-primary" />
-                Earnings
+                Earnings Breakdown
               </h3>
               <div className="space-y-4">
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Total Sales Value</span>
-                  <span className="font-black">₹{totalSales.toLocaleString("en-IN")}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Commission (₹500/coupon)</span>
-                  <span className="font-black text-green-600">₹{commission.toLocaleString("en-IN")}</span>
+                  <span className="text-sm text-muted-foreground">Commission Type</span>
+                  <span className="font-black text-xs uppercase tracking-widest">Fixed (₹500)</span>
                 </div>
                 <div className="flex justify-between pt-4 border-t border-border">
-                  <span className="text-sm font-bold">Pending Payout</span>
-                  <span className="font-black text-primary">₹{commission.toLocaleString("en-IN")}</span>
+                  <span className="text-sm font-bold">Total Earnings</span>
+                  <span className="font-black text-green-600">₹{totalEarnings.toLocaleString("en-IN")}</span>
                 </div>
               </div>
             </div>
