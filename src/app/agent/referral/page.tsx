@@ -13,6 +13,7 @@ import {
 import toast from "react-hot-toast";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
+import { cn } from "@/lib/utils";
 
 export default function ReferralAgentDashboard() {
   const { user, profile } = useAuth();
