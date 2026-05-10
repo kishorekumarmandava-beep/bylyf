@@ -220,10 +220,7 @@ export default function CheckoutPage() {
             
             let generatedCouponIds: string[] = [];
             if (grandTotal >= 2500) {
-              const eligibleItems = items.filter(i => {
-                const product = mockProducts.find(p => p.id === i.id);
-                return product?.luckyDrawEligible;
-              });
+              const eligibleItems = items.filter(i => i.luckyDrawEligible);
 
               for (const item of eligibleItems) {
                 for (let j = 0; j < item.quantity; j++) {

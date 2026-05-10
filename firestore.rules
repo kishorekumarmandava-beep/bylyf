@@ -56,6 +56,20 @@ service cloud.firestore {
       allow write: if isAdmin() || isBootstrapAdmin();
     }
 
+    // Lucky Draw Entries
+    match /lucky_draw_entries/{entryId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin() || isBootstrapAdmin());
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || isBootstrapAdmin();
+    }
+
+    // Tickets (Grievance Support)
+    match /tickets/{ticketId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin() || isBootstrapAdmin());
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || isBootstrapAdmin();
+    }
+
     // Audit Logs
     match /audit_logs/{logId} {
       allow create: if isSignedIn();
