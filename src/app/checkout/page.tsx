@@ -179,7 +179,7 @@ export default function CheckoutPage() {
 
       // 2. Open Razorpay Checkout
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID?.trim(),
         amount: orderDataResponse.amount,
         currency: orderDataResponse.currency,
         name: "BYLYF Store",
