@@ -287,12 +287,16 @@ export default function CheckoutPage() {
               if (referralCode) {
                 const agentQ = query(
                   collection(db, "users"), 
-                  where("referralCode", "==", referralCode),
                   where("role", "in", ["agent", "storefront_agent"])
                 );
                 const agentSnap = await getDocs(agentQ);
-                if (!agentSnap.empty) {
-                  const agentDoc = agentSnap.docs[0];
+                
+                const agentDoc = agentSnap.docs.find(d => 
+                  d.data().referralCode === referralCode || 
+                  d.id.slice(0, 8).toUpperCase() === referralCode
+                );
+
+                if (agentDoc) {
                   agentDetails = agentDoc.data();
                   agentUid = agentDoc.id;
                   
