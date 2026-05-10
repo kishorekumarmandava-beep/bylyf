@@ -187,6 +187,24 @@ export default function CheckoutPage() {
         order_id: orderDataResponse.id,
         handler: async function (razorResponse: any) {
           try {
+            // 2.5 Verify Payment Signature on Server
+            const verifyRes = await fetch("/api/checkout/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: razorResponse.razorpay_order_id,
+                razorpay_payment_id: razorResponse.razorpay_payment_id,
+                razorpay_signature: razorResponse.razorpay_signature,
+              }),
+            });
+
+            const verifyData = await verifyRes.json();
+            if (!verifyRes.ok || !verifyData.success) {
+              console.error("Verification Failed:", verifyData);
+              toast.error("Payment verification failed. Please contact support.");
+              return;
+            }
+
             // 3. Mark coupon as redeemed if applicable
             if (appliedCoupon) {
               await updateDoc(doc(db, "coupons", appliedCoupon.id), {
@@ -345,6 +363,12 @@ export default function CheckoutPage() {
       };
 
       const paymentObject = new (window as any).Razorpay(options);
+      
+      paymentObject.on('payment.failed', function (response: any) {
+        console.error("Payment Failed:", response.error);
+        toast.error(`Payment Failed: ${response.error.description}`);
+      });
+
       paymentObject.open();
 
     } catch (error: any) {
