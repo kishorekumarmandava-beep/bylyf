@@ -11,6 +11,11 @@ import {
   UserCog,
   Users,
   Briefcase,
+  Eye,
+  X,
+  ExternalLink,
+  CheckCircle2,
+  Clock
 } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { collection, query, getDocs, updateDoc, doc, orderBy } from "firebase/firestore";
@@ -141,6 +146,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedKyc, setSelectedKyc] = useState<any>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -220,6 +226,7 @@ export default function AdminUsersPage() {
                   <tr>
                     <th className="px-8 py-5 text-xs font-black uppercase tracking-widest">User</th>
                     <th className="px-8 py-5 text-xs font-black uppercase tracking-widest">Contact</th>
+                    <th className="px-8 py-5 text-xs font-black uppercase tracking-widest text-center">Verification</th>
                     <th className="px-8 py-5 text-xs font-black uppercase tracking-widest text-center">Role</th>
                   </tr>
                 </thead>
@@ -260,6 +267,34 @@ export default function AdminUsersPage() {
                             )}
                           </div>
                         </td>
+                        <td className="px-8 py-6">
+                          {u.panNumber ? (
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="text-xs font-black font-mono bg-secondary px-3 py-1 rounded-lg border border-border">
+                                {u.panNumber}
+                              </div>
+                              {u.panCardUrl && (
+                                <button 
+                                  onClick={() => setSelectedKyc(u)}
+                                  className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary hover:underline"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                  View PAN
+                                </button>
+                              )}
+                              {u.agentStatus === "pending" && (
+                                <div className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                                  <Clock className="w-3 h-3" />
+                                  Pending
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="text-center text-[10px] text-muted-foreground font-bold uppercase tracking-widest italic">
+                              No Data
+                            </div>
+                          )}
+                        </td>
                         <td className="px-8 py-6 text-center">
                           <RoleDropdown
                             userId={u.id}
@@ -275,6 +310,50 @@ export default function AdminUsersPage() {
             </div>
           )}
         </div>
+
+        {/* KYC Modal */}
+        {selectedKyc && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in">
+            <div className="bg-background border border-border rounded-[3rem] shadow-3xl w-full max-w-2xl overflow-hidden">
+              <div className="p-8 border-b border-border flex justify-between items-center">
+                <div>
+                  <h3 className="text-2xl font-black tracking-tight">{selectedKyc.displayName}</h3>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">PAN: {selectedKyc.panNumber}</p>
+                </div>
+                <button 
+                  onClick={() => setSelectedKyc(null)}
+                  className="p-3 bg-secondary rounded-2xl hover:bg-border transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="p-8 bg-secondary/20 aspect-video flex items-center justify-center">
+                <img 
+                  src={selectedKyc.panCardUrl} 
+                  alt="PAN Card" 
+                  className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
+                />
+              </div>
+              <div className="p-8 border-t border-border flex justify-end gap-4">
+                <a 
+                  href={selectedKyc.panCardUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="px-6 py-3 bg-secondary rounded-2xl font-bold text-sm flex items-center gap-2 hover:bg-border transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Open Full Image
+                </a>
+                <button 
+                  onClick={() => setSelectedKyc(null)}
+                  className="px-8 py-3 bg-primary text-primary-foreground rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
+                >
+                  Close Preview
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
   );
 }

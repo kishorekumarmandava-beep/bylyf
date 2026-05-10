@@ -94,8 +94,8 @@ export default function TransparencyPage() {
               },
               {
                 icon: <Eye className="w-8 h-8 text-primary" />,
-                title: "Public Audits",
-                desc: "Our lucky draw algorithms are audited by independent third-party firms to guarantee 100% randomness and fairness."
+                title: "Auditable",
+                desc: "Our lucky draw algorithms are auditable by independent third-party firms to guarantee 100% randomness and fairness."
               },
               {
                 icon: <Search className="w-8 h-8 text-primary" />,
@@ -150,8 +150,8 @@ export default function TransparencyPage() {
               <div className="aspect-square bg-white/10 rounded-[3rem] border border-white/20 p-8 backdrop-blur-xl">
                 <div className="h-full border border-white/10 rounded-[2rem] flex flex-col items-center justify-center text-center p-8">
                   <Award className="w-20 h-20 mb-6 text-white" />
-                  <div className="text-3xl font-black mb-2">100% Audited</div>
-                  <p className="text-primary-foreground/60 mb-8">Certified by Global Fairness Standards</p>
+                  <div className="text-3xl font-black mb-2">100% Trustworthy</div>
+                  <p className="text-primary-foreground/60 mb-8">As per Global Fairness Standards</p>
                   <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
                     <div className="w-full h-full bg-white animate-pulse"></div>
                   </div>
@@ -265,7 +265,7 @@ export default function TransparencyPage() {
               <CheckCircle2 className="w-5 h-5 text-green-500" /> GST COMPLIANT
             </div>
             <div className="flex items-center gap-2 font-black italic text-muted-foreground/50">
-              <CheckCircle2 className="w-5 h-5 text-green-500" /> DTI CERTIFIED
+              <CheckCircle2 className="w-5 h-5 text-green-500" /> 100% GENUINE
             </div>
             <div className="flex items-center gap-2 font-black italic text-muted-foreground/50">
               <CheckCircle2 className="w-5 h-5 text-green-500" /> PRIVACY FIRST

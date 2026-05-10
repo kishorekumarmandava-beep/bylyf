@@ -179,6 +179,11 @@ export default function Navbar() {
           <div className="md:hidden flex items-center gap-4">
             <Link href="/cart" className="relative p-2">
               <ShoppingCart className="w-6 h-6" />
+              {cartCount > 0 && (
+                <span className="absolute top-0 right-0 w-5 h-5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-background animate-in">
+                  {cartCount}
+                </span>
+              )}
             </Link>
             <button 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -212,7 +217,7 @@ export default function Navbar() {
                 <Link href="/shop" className="p-4 bg-secondary rounded-2xl text-center font-semibold">Shop</Link>
                 <Link href="/categories" className="p-4 bg-secondary rounded-2xl text-center font-semibold">Categories</Link>
               </div>
-              {!user && (
+              {!user ? (
                 <button 
                   onClick={() => {
                     setIsMobileMenuOpen(false);
@@ -222,6 +227,48 @@ export default function Navbar() {
                 >
                   Sign In
                 </button>
+              ) : (
+                <div className="flex flex-col gap-3 pt-4 border-t border-border">
+                  <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 bg-secondary rounded-2xl">
+                    <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
+                      <User className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">{profile?.displayName || "User"}</p>
+                      <p className="text-xs text-muted-foreground capitalize">{profile?.role || "Customer"}</p>
+                    </div>
+                  </Link>
+
+                  {profile?.role === "admin" && (
+                    <Link href="/admin/users" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 bg-primary/5 text-primary rounded-2xl font-semibold">
+                      <ShieldCheck className="w-5 h-5" />
+                      Admin Dashboard
+                    </Link>
+                  )}
+                  {profile?.role === "agent" && (
+                    <Link href="/agent/referral" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 bg-blue-500/5 text-blue-600 rounded-2xl font-semibold">
+                      <Share2 className="w-5 h-5" />
+                      Referral Portal
+                    </Link>
+                  )}
+                  {profile?.role === "storefront_agent" && (
+                    <Link href="/agent/storefront" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 bg-violet-500/5 text-violet-600 rounded-2xl font-semibold">
+                      <Package className="w-5 h-5" />
+                      Storefront Portal
+                    </Link>
+                  )}
+
+                  <button 
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleSignOut();
+                    }}
+                    className="flex items-center gap-3 p-3 text-destructive bg-destructive/5 rounded-2xl font-semibold mt-2"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    Sign Out
+                  </button>
+                </div>
               )}
             </div>
           </motion.div>
