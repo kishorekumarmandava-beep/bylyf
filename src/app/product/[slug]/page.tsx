@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { mockProducts } from "@/data/mockProducts";
+import { db } from "@/lib/firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import Navbar from "@/components/layout/Navbar";
 import { useCartStore } from "@/store/useCartStore";
 import toast from "react-hot-toast";
@@ -24,10 +25,35 @@ import { cn } from "@/lib/utils";
 export default function ProductPage() {
   const { slug } = useParams();
   const router = useRouter();
-  const product = mockProducts.find((p) => p.slug === slug);
+  const [product, setProduct] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const addItem = useCartStore((state) => state.addItem);
 
   const [selectedImage, setSelectedImage] = useState(0);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const q = query(collection(db, "products"), where("slug", "==", slug));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          const doc = querySnapshot.docs[0];
+          setProduct({ id: doc.id, ...doc.data() });
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (slug) fetchProduct();
+  }, [slug]);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center font-black italic text-muted-foreground">Loading Product Details...</div>;
+  }
 
   if (!product) {
     return (
