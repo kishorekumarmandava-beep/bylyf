@@ -46,31 +46,35 @@ export default function ProfilePage() {
         // Fetch Orders
         const qOrders = query(
           collection(db, "orders"), 
-          where("userId", "==", user.uid),
-          orderBy("createdAt", "desc")
+          where("userId", "==", user.uid)
         );
         const orderSnap = await getDocs(qOrders);
-        const orderData = orderSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const orderData = orderSnap.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
         setOrders(orderData);
 
         // Fetch Coupons
         const qCoupons = query(
           collection(db, "lucky_draw_entries"),
-          where("userId", "==", user.uid),
-          orderBy("createdAt", "desc")
+          where("userId", "==", user.uid)
         );
         const couponSnap = await getDocs(qCoupons);
-        const couponData = couponSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const couponData = couponSnap.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
         setCoupons(couponData);
 
         // Fetch Tickets
         const qTickets = query(
           collection(db, "tickets"),
-          where("userId", "==", user.uid),
-          orderBy("createdAt", "desc")
+          where("userId", "==", user.uid)
         );
         const ticketSnap = await getDocs(qTickets);
-        setTickets(ticketSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        const ticketData = ticketSnap.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        setTickets(ticketData);
       } catch (err) {
         console.error("Fetch Data Error:", err);
       } finally {
