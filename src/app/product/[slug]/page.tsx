@@ -6,6 +6,7 @@ import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import Navbar from "@/components/layout/Navbar";
 import { useCartStore } from "@/store/useCartStore";
+import { Product } from "@/types/product";
 import toast from "react-hot-toast";
 import { 
   Zap, 
@@ -25,7 +26,7 @@ import { cn } from "@/lib/utils";
 export default function ProductPage() {
   const { slug } = useParams();
   const router = useRouter();
-  const [product, setProduct] = useState<any>(null);
+  const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const addItem = useCartStore((state) => state.addItem);
 
@@ -111,7 +112,7 @@ export default function ProductPage() {
             </div>
             
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-              {product.images.map((img, idx) => (
+              {product.images.map((img: string, idx: number) => (
                 <button 
                   key={idx}
                   onClick={() => setSelectedImage(idx)}
@@ -235,7 +236,7 @@ export default function ProductPage() {
                       { label: "Weight", value: `${product.weight} kg` },
                       { label: "Dimensions", value: `${product.dimensions.length} x ${product.dimensions.width} x ${product.dimensions.height} cm` },
                       { label: "Type", value: product.type.toUpperCase() }
-                    ].map((spec, i) => (
+                    ].map((spec: { label: string; value: string | number | undefined }, i: number) => (
                       <tr key={i} className="hover:bg-secondary/50 transition-colors">
                         <td className="px-8 py-4 text-sm font-bold text-muted-foreground uppercase tracking-widest w-1/3">{spec.label}</td>
                         <td className="px-8 py-4 text-sm font-semibold">{spec.value}</td>

@@ -106,7 +106,7 @@ export default function Home() {
                     <p className="text-muted-foreground mb-4">Enter the draw with any purchase over ₹999</p>
                     <div className="flex items-center gap-4">
                       <div className="flex -space-x-3">
-                        {[1,2,3,4].map(i => (
+                        {[1, 2, 3, 4].map((i: number) => (
                           <div key={i} className="w-10 h-10 rounded-full border-2 border-background bg-secondary"></div>
                         ))}
                       </div>
@@ -157,7 +157,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-            {["Electronics", "Education", "Lifestyle", "Gaming"].map((cat) => (
+            {["Electronics", "Education", "Lifestyle", "Gaming"].map((cat: string) => (
               <div key={cat} className="aspect-square bg-white/5 rounded-[2.5rem] border border-white/10 p-8 flex flex-col justify-between hover:bg-white/10 transition-colors cursor-pointer group">
                 <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Zap className="w-6 h-6" />
