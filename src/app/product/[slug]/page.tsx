@@ -197,9 +197,21 @@ export default function ProductPage() {
               {/* Trust Features */}
               <div className="grid grid-cols-3 gap-4">
                 {[
-                  { icon: Truck, label: "Fast Delivery", sub: "2-4 Business Days" },
-                  { icon: RotateCcw, label: "Easy Returns", sub: "7 Day Replacement" },
-                  { icon: ShieldCheck, label: "Secure", sub: "100% Genuine" }
+                  { 
+                    icon: product.type === "digital" ? Zap : Truck, 
+                    label: product.type === "digital" ? "Instant Delivery" : "Fast Delivery", 
+                    sub: product.type === "digital" ? "Available in Library" : "2-4 Business Days" 
+                  },
+                  { 
+                    icon: product.type === "digital" ? ShieldCheck : RotateCcw, 
+                    label: product.type === "digital" ? "Lifetime Access" : "Easy Returns", 
+                    sub: product.type === "digital" ? "Download Anytime" : "7 Day Replacement" 
+                  },
+                  { 
+                    icon: ShieldCheck, 
+                    label: "Secure", 
+                    sub: "100% Genuine" 
+                  }
                 ].map((item, i) => (
                   <div key={i} className="text-center p-4">
                     <div className="w-12 h-12 bg-secondary rounded-2xl flex items-center justify-center mx-auto mb-3">
