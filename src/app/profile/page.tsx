@@ -21,6 +21,7 @@ import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import toast from "react-hot-toast";
 
 type Tab = "overview" | "orders" | "library" | "settings" | "coupons" | "tickets";
 
@@ -32,6 +33,7 @@ export default function ProfilePage() {
   const [coupons, setCoupons] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -82,6 +84,41 @@ export default function ProfilePage() {
   const handleSignOut = async () => {
     await signOut(auth);
     router.push("/");
+  };
+
+  const handleDownload = async (productId: string, title: string) => {
+    if (!user) return;
+    setDownloading(productId);
+    
+    try {
+      const response = await fetch("/api/products/download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, userId: user.uid }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to get download link");
+      }
+
+      // Create a temporary link and trigger download
+      const link = document.createElement("a");
+      link.href = data.url;
+      link.target = "_blank";
+      link.download = data.fileName || `${title}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success("Download started!");
+    } catch (err: any) {
+      console.error("Download Error:", err);
+      toast.error(err.message);
+    } finally {
+      setDownloading(null);
+    }
   };
 
   if (!user || !profile) return null;
@@ -202,8 +239,18 @@ export default function ProfilePage() {
                       </div>
                       <div className="p-6">
                         <h4 className="font-bold mb-4">{item.title}</h4>
-                        <button className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2">
-                          <Download className="w-4 h-4" /> Download Now
+                        <button 
+                          onClick={() => handleDownload(item.id, item.title)}
+                          disabled={downloading === item.id}
+                          className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                          {downloading === item.id ? (
+                            "Preparing..."
+                          ) : (
+                            <>
+                              <Download className="w-4 h-4" /> Download Now
+                            </>
+                          )}
                         </button>
                       </div>
                     </div>

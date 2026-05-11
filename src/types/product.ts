@@ -39,6 +39,11 @@ export interface Product {
   // Features
   luckyDrawEligible: boolean;
   
+  // Digital Content (only for type: 'digital')
+  digitalFileUrl?: string;
+  digitalFileName?: string;
+  digitalFileSize?: number;
+
   // Timestamps
   createdAt: any;
   updatedAt: any;

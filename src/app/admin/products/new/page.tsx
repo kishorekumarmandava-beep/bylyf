@@ -15,7 +15,8 @@ import {
   FileDigit,
   Percent,
   Truck,
-  Zap
+  Zap,
+  FileText
 } from "lucide-react";
 import { db, storage } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -53,6 +54,16 @@ export default function NewProductPage() {
 
   const [images, setImages] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [digitalFile, setDigitalFile] = useState<File | null>(null);
+  const [digitalFileName, setDigitalFileName] = useState("");
+
+  const handleDigitalFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setDigitalFile(file);
+      setDigitalFileName(file.name);
+    }
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -77,7 +88,15 @@ export default function NewProductPage() {
         })
       );
 
-      // 2. Prepare Data
+      // 2. Upload Digital File (if digital type)
+      let digitalUrl = "";
+      if (formData.type === "digital" && digitalFile) {
+        const digitalRef = ref(storage, `digital-products/${Date.now()}_${digitalFile.name}`);
+        const snapshot = await uploadBytes(digitalRef, digitalFile);
+        digitalUrl = await getDownloadURL(snapshot.ref);
+      }
+
+      // 3. Prepare Data
       const productData = {
         ...formData,
         mrp: Number(formData.mrp),
@@ -90,8 +109,19 @@ export default function NewProductPage() {
         updatedAt: serverTimestamp(),
       };
 
-      // 3. Save to Firestore
-      await addDoc(collection(db, "products"), productData);
+      // 4. Save to Firestore
+      const docRef = await addDoc(collection(db, "products"), productData);
+
+      // 5. Save Digital Metadata to Private Collection if digital
+      if (formData.type === "digital" && digitalUrl) {
+        await addDoc(collection(db, "product_content"), {
+          productId: docRef.id,
+          fileUrl: digitalUrl,
+          fileName: digitalFileName,
+          fileSize: digitalFile?.size || 0,
+          createdAt: serverTimestamp(),
+        });
+      }
       
       toast.success("Product created successfully!");
       router.push("/admin/products");
@@ -264,6 +294,42 @@ export default function NewProductPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Digital Asset Upload (Only for Digital Products) */}
+              {formData.type === "digital" && (
+                <div className="bg-secondary/30 rounded-[2.5rem] border border-border p-8">
+                  <h3 className="text-lg font-black mb-6 flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-primary" />
+                    Digital Asset
+                  </h3>
+                  <div className="space-y-4">
+                    <label className="w-full h-32 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:bg-secondary transition-colors relative overflow-hidden">
+                      {digitalFile ? (
+                        <div className="text-center p-4">
+                          <FileText className="w-8 h-8 text-primary mx-auto mb-2" />
+                          <div className="text-xs font-bold truncate max-w-[200px]">{digitalFileName}</div>
+                          <div className="text-[10px] text-muted-foreground mt-1">{(digitalFile.size / (1024 * 1024)).toFixed(2)} MB</div>
+                        </div>
+                      ) : (
+                        <>
+                          <Upload className="w-6 h-6 text-muted-foreground mb-2" />
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-center">Upload Digital Copy<br/><span className="text-muted-foreground/60">(PDF, EPUB, etc.)</span></span>
+                        </>
+                      )}
+                      <input type="file" className="hidden" onChange={handleDigitalFileChange} required />
+                    </label>
+                    {digitalFile && (
+                      <button 
+                        type="button"
+                        onClick={() => { setDigitalFile(null); setDigitalFileName(""); }}
+                        className="w-full py-2 text-destructive text-[10px] font-black uppercase tracking-widest hover:underline"
+                      >
+                        Remove File
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Images */}
               <div className="bg-secondary/30 rounded-[2.5rem] border border-border p-8">

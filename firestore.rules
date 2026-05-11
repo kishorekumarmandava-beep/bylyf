@@ -43,6 +43,12 @@ service cloud.firestore {
       allow write: if isAdmin() || isBootstrapAdmin(); // Only admin can add/edit
     }
 
+    // Digital Product Content (Private)
+    match /product_content/{contentId} {
+      allow read: if isAdmin() || isBootstrapAdmin();
+      allow write: if isAdmin() || isBootstrapAdmin();
+    }
+
     // Orders
     match /orders/{orderId} {
       allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin() || isBootstrapAdmin());
