@@ -18,7 +18,7 @@ import {
   FileText
 } from "lucide-react";
 import { db, storage } from "@/lib/firebase";
-import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
@@ -166,9 +166,13 @@ export default function EditProductPage() {
 
       // 5. Update Digital Metadata if provided
       if (formData.type === "digital" && digitalUrl) {
-        // Here we could search for existing product_content and update it, 
-        // but for simplicity we'll create a new one or you can extend this.
-        // For now, updating the product is the priority.
+        await addDoc(collection(db, "product_content"), {
+          productId: id as string,
+          fileUrl: digitalUrl,
+          fileName: digitalFileName,
+          fileSize: digitalFile?.size || 0,
+          createdAt: serverTimestamp(),
+        });
       }
       
       toast.success("Product updated successfully!");
