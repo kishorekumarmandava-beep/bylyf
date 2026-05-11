@@ -1,10 +1,37 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
-import { mockProducts } from "@/data/mockProducts";
 import ProductGrid from "@/components/shop/ProductGrid";
 import { ArrowRight, Zap, Shield, Sparkles, CheckCircle2 } from "lucide-react";
+import { db } from "@/lib/firebase";
+import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
 
 export default function Home() {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const q = query(collection(db, "products"), orderBy("createdAt", "desc"), limit(8));
+        const querySnapshot = await getDocs(q);
+        const fetchedProducts = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setProducts(fetchedProducts);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
@@ -18,15 +45,15 @@ export default function Home() {
                 <Zap className="w-5 h-5 fill-current" />
                 Lucky Draw
               </div>
-              <h1 className="text-5xl lg:text-7xl font-black tracking-tight leading-[1.1] mb-8 animate-in" style={{ animationDelay: "100ms" }}>
+              <h1 className="text-5xl lg:text-7xl font-black tracking-tight leading-[1.1] mb-8 animate-in">
                 Shop Smart. <br />
                 <span className="text-primary/40 italic">Win Big.</span> <br />
                 Only on <span className="text-primary">BYLYF.</span>
               </h1>
-              <p className="text-xl text-muted-foreground mb-10 max-w-xl animate-in" style={{ animationDelay: "200ms" }}>
+              <p className="text-xl text-muted-foreground mb-10 max-w-xl animate-in">
                 Experience the next generation of ecommerce. Premium products, Lucky Draw, and a platform built for India's digital future.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 animate-in" style={{ animationDelay: "300ms" }}>
+              <div className="flex flex-col sm:flex-row gap-4 animate-in">
                 <a 
                   href="#catalog"
                   className="px-8 py-5 bg-primary text-primary-foreground rounded-2xl font-bold text-lg flex items-center justify-center gap-2 shadow-2xl shadow-primary/30 hover:scale-[1.02] transition-all"
@@ -43,7 +70,7 @@ export default function Home() {
               </div>
 
               {/* Stats */}
-              <div className="mt-16 grid grid-cols-3 gap-8 border-t border-border pt-8 animate-in" style={{ animationDelay: "400ms" }}>
+              <div className="mt-16 grid grid-cols-3 gap-8 border-t border-border pt-8 animate-in">
                 <div>
                   <div className="text-3xl font-black">10k+</div>
                   <div className="text-sm text-muted-foreground uppercase tracking-widest font-bold">Products</div>
@@ -60,7 +87,7 @@ export default function Home() {
             </div>
 
             {/* Hero Image/Card Placeholder */}
-            <div className="hidden lg:flex lg:col-span-5 relative mt-12 lg:mt-0 animate-in" style={{ animationDelay: "500ms" }}>
+            <div className="hidden lg:flex lg:col-span-5 relative mt-12 lg:mt-0 animate-in">
               <div className="w-full aspect-[4/5] bg-gradient-to-br from-primary/5 to-primary/20 rounded-[3rem] border border-primary/10 relative overflow-hidden group">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-[radial-gradient(circle_at_center,var(--primary)_0%,transparent_70%)] opacity-10 animate-pulse"></div>
                 
@@ -105,11 +132,15 @@ export default function Home() {
       </section>
 
       <section id="catalog" className="bg-background">
-        <ProductGrid 
-          products={mockProducts} 
-          title="Featured Collection" 
-          subtitle="Discover our latest arrivals and top-rated products."
-        />
+        {loading ? (
+          <div className="py-20 text-center font-black italic text-muted-foreground">Loading Collection...</div>
+        ) : (
+          <ProductGrid 
+            products={products} 
+            title="Featured Collection" 
+            subtitle="Discover our latest arrivals and top-rated products."
+          />
+        )}
       </section>
 
       {/* Categories Spotlight */}

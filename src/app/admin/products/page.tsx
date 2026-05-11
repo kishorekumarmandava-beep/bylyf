@@ -200,9 +200,9 @@ export default function AdminProductsPage() {
                           <Link href={`/product/${product.slug}`} className="p-2 hover:bg-secondary rounded-lg transition-colors">
                             <ExternalLink className="w-4 h-4" />
                           </Link>
-                          <button className="p-2 hover:bg-secondary rounded-lg transition-colors">
+                          <Link href={`/admin/products/${product.id}`} className="p-2 hover:bg-secondary rounded-lg transition-colors">
                             <Edit3 className="w-4 h-4" />
-                          </button>
+                          </Link>
                           <button 
                             onClick={() => handleDelete(product.id)}
                             className="p-2 hover:bg-destructive/10 text-destructive rounded-lg transition-colors"
