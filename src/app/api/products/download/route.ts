@@ -14,12 +14,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing productId or userId" }, { status: 400 });
     }
 
-    // 1. Verify that the user has a paid order for this product
+    // 1. Verify that the user has a valid order for this product
     const ordersRef = collection(db, "orders");
     const q = query(
       ordersRef,
-      where("userId", "==", userId),
-      where("status", "==", "paid")
+      where("userId", "==", userId)
     );
 
     const querySnapshot = await getDocs(q);
@@ -27,8 +26,12 @@ export async function POST(req: Request) {
 
     querySnapshot.forEach((doc) => {
       const order = doc.data();
-      const itemFound = order.items.some((item: any) => item.id === productId);
-      if (itemFound) hasPurchased = true;
+      const validStatuses = ["paid", "processing", "completed", "success"];
+      
+      if (validStatuses.includes(order.status)) {
+        const itemFound = order.items?.some((item: any) => item.id === productId);
+        if (itemFound) hasPurchased = true;
+      }
     });
 
     if (!hasPurchased) {
