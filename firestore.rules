@@ -7,7 +7,10 @@ service cloud.firestore {
       return request.auth != null;
     }
     function isAdmin() {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return isSignedIn() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+        exists(/databases/$(database)/documents/admin/$(request.auth.uid))
+      );
     }
     function isAgent() {
       return isSignedIn() && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'agent' || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'storefront_agent');
