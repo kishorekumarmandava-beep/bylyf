@@ -8,6 +8,7 @@ import { ShoppingCart, Star, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCartStore } from "@/store/useCartStore";
 import toast from "react-hot-toast";
+import { useActiveCampaign } from "@/hooks/useActiveCampaign";
 
 interface ProductCardProps {
   product: Product;
@@ -16,6 +17,7 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem);
   const discount = Math.round(((product.mrp - product.sellingPrice) / product.mrp) * 100);
+  const { hasActiveCampaign } = useActiveCampaign();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -44,7 +46,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               -{discount}% OFF
             </div>
           )}
-          {product.luckyDrawEligible && (
+          {product.luckyDrawEligible && hasActiveCampaign && (
             <div className="px-3 py-1 bg-primary text-primary-foreground text-xs font-black rounded-full flex items-center gap-1">
               <Zap className="w-3 h-3 fill-current" />
               DRAW ELIGIBLE

@@ -234,7 +234,7 @@ export default function CheckoutPage() {
             const minSpend = activeCampData ? activeCampData.minSpendForCoupon : 2500;
             
             let generatedCouponIds: string[] = [];
-            if (grandTotal >= minSpend) {
+            if (activeCampId && grandTotal >= minSpend) {
               const eligibleItems = items.filter(i => i.luckyDrawEligible);
 
               for (const item of eligibleItems) {
@@ -263,58 +263,17 @@ export default function CheckoutPage() {
             const couponsEarned = generatedCouponIds.length;
 
             if (activeCampId && couponsEarned > 0) {
-               await updateDoc(doc(db, "campaigns", activeCampId), {
-                 currentCoupons: increment(couponsEarned)
-               });
-               
-               if (activeCampData && (activeCampData.currentCoupons + couponsEarned) >= activeCampData.targetCoupons && activeCampData.status === "active") {
-                 // Automatically draw the winner
-                 const entriesQ = query(collection(db, "lucky_draw_entries"), where("campaignId", "==", activeCampId));
-                 const entriesSnap = await getDocs(entriesQ);
-                 
-                 const updates: any = {
-                   status: "completed",
-                   endedAt: serverTimestamp()
-                 };
-
-                 if (!entriesSnap.empty) {
-                   const entries = entriesSnap.docs.map(d => ({id: d.id, ...d.data()}));
-                   const randomArray = new Uint32Array(1);
-                   window.crypto.getRandomValues(randomArray);
-                   const randomIndex = randomArray[0] % entries.length;
-                   const winner = entries[randomIndex] as any;
-                   
-                   updates.winnerEntryId = winner.couponId;
-                   updates.winnerDetails = {
-                     name: winner.maskedName,
-                     userId: winner.userId || "anonymous",
-                     orderId: winner.orderId
-                   };
-                 } else {
-                   updates.winnerEntryId = "NO_ENTRIES";
-                 }
-
-                 await updateDoc(doc(db, "campaigns", activeCampId), updates);
-
-                 // Attempt auto-rollover
-                 try {
-                   const settingsDoc = await getDoc(doc(db, "settings", "agent_config"));
-                   const autoRolloverPaused = settingsDoc.exists() ? settingsDoc.data().autoRolloverPaused : false;
-
-                   if (!autoRolloverPaused) {
-                     const upQ = query(collection(db, "campaigns"), where("status", "==", "upcoming"), orderBy("createdAt", "asc"));
-                     const upSnap = await getDocs(upQ);
-                     if (!upSnap.empty) {
-                       const nextCamp = upSnap.docs[0];
-                       await updateDoc(doc(db, "campaigns", nextCamp.id), {
-                         status: "active",
-                         startedAt: serverTimestamp()
-                       });
-                     }
-                   }
-                 } catch (rolloverErr) {
-                   console.error("Auto-rollover error:", rolloverErr);
-                 }
+               try {
+                 await fetch("/api/campaigns/process-draw", {
+                   method: "POST",
+                   headers: { "Content-Type": "application/json" },
+                   body: JSON.stringify({
+                     campaignId: activeCampId,
+                     couponsEarned
+                   })
+                 });
+               } catch (drawErr) {
+                 console.error("Process Draw API Error:", drawErr);
                }
             }
             

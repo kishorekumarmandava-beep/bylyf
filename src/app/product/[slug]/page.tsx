@@ -8,6 +8,7 @@ import Navbar from "@/components/layout/Navbar";
 import { useCartStore } from "@/store/useCartStore";
 import { Product } from "@/types/product";
 import toast from "react-hot-toast";
+import { useActiveCampaign } from "@/hooks/useActiveCampaign";
 import { 
   Zap, 
   ShoppingCart, 
@@ -29,6 +30,7 @@ export default function ProductPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const addItem = useCartStore((state) => state.addItem);
+  const { hasActiveCampaign } = useActiveCampaign();
 
   const [selectedImage, setSelectedImage] = useState(0);
 
@@ -134,7 +136,7 @@ export default function ProductPage() {
                 <span className="px-4 py-1.5 bg-secondary text-foreground text-[10px] font-black uppercase tracking-[0.2em] rounded-full">
                   {product.brand}
                 </span>
-                {product.luckyDrawEligible && (
+                {product.luckyDrawEligible && hasActiveCampaign && (
                   <span className="px-4 py-1.5 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-[0.2em] rounded-full flex items-center gap-1">
                     <Zap className="w-3 h-3 fill-current" />
                     LUCKY DRAW ELIGIBLE

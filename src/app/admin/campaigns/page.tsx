@@ -43,6 +43,8 @@ export default function AdminCampaignsPage() {
       if (docSnap.exists() && docSnap.data().autoRolloverPaused !== undefined) {
         setAutoRolloverPaused(docSnap.data().autoRolloverPaused);
       }
+    }, (err) => {
+      console.error("Error fetching settings:", err);
     });
 
     // 2. Listen to campaigns
@@ -50,6 +52,10 @@ export default function AdminCampaignsPage() {
     const campaignsUnsub = onSnapshot(q, (snapshot) => {
       const camps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setCampaigns(camps);
+      setLoading(false);
+    }, (err) => {
+      console.error("Error fetching campaigns:", err);
+      toast.error("Permission error fetching campaigns. Are Firestore rules deployed?");
       setLoading(false);
     });
 

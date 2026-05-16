@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, limit, onSnapshot, getDocs, where } from "firebase/firestore";
+import { cn } from "@/lib/utils";
 
 export default function TransparencyPage() {
   const [campaigns, setCampaigns] = useState<any[]>([]);
@@ -370,9 +371,27 @@ export default function TransparencyPage() {
                           <div className="text-xs text-muted-foreground">{coupon.createdAt?.toDate().toLocaleString()}</div>
                         </td>
                         <td className="px-8 py-6 text-right">
-                          <span className="px-3 py-1 bg-success/10 text-success rounded-full text-[10px] font-black uppercase tracking-widest">
-                            {coupon.status}
-                          </span>
+                          {(() => {
+                            const camp = campaigns.find(c => c.id === coupon.campaignId);
+                            let displayStatus = coupon.status;
+                            let statusColors = "bg-success/10 text-success";
+                            
+                            if (camp && camp.status === "completed") {
+                              if (camp.winnerEntryId === coupon.couponId) {
+                                displayStatus = "WON 🏆";
+                                statusColors = "bg-yellow-500/20 text-yellow-600 border border-yellow-500/50";
+                              } else {
+                                displayStatus = "DRAWN";
+                                statusColors = "bg-muted/10 text-muted-foreground";
+                              }
+                            }
+                            
+                            return (
+                              <span className={cn("px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest", statusColors)}>
+                                {displayStatus}
+                              </span>
+                            );
+                          })()}
                         </td>
                       </tr>
                     ))
