@@ -17,7 +17,7 @@ import {
   Clock
 } from "lucide-react";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp, updateDoc, doc, query, where, getDocs, getDoc, increment } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, updateDoc, doc, query, where, getDocs, getDoc, increment, orderBy } from "firebase/firestore";
 import { mockProducts } from "@/data/mockProducts";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
@@ -268,9 +268,53 @@ export default function CheckoutPage() {
                });
                
                if (activeCampData && (activeCampData.currentCoupons + couponsEarned) >= activeCampData.targetCoupons && activeCampData.status === "active") {
-                 await updateDoc(doc(db, "campaigns", activeCampId), {
-                   status: "drawing"
-                 });
+                 // Automatically draw the winner
+                 const entriesQ = query(collection(db, "lucky_draw_entries"), where("campaignId", "==", activeCampId));
+                 const entriesSnap = await getDocs(entriesQ);
+                 
+                 const updates: any = {
+                   status: "completed",
+                   endedAt: serverTimestamp()
+                 };
+
+                 if (!entriesSnap.empty) {
+                   const entries = entriesSnap.docs.map(d => ({id: d.id, ...d.data()}));
+                   const randomArray = new Uint32Array(1);
+                   window.crypto.getRandomValues(randomArray);
+                   const randomIndex = randomArray[0] % entries.length;
+                   const winner = entries[randomIndex] as any;
+                   
+                   updates.winnerEntryId = winner.couponId;
+                   updates.winnerDetails = {
+                     name: winner.maskedName,
+                     userId: winner.userId || "anonymous",
+                     orderId: winner.orderId
+                   };
+                 } else {
+                   updates.winnerEntryId = "NO_ENTRIES";
+                 }
+
+                 await updateDoc(doc(db, "campaigns", activeCampId), updates);
+
+                 // Attempt auto-rollover
+                 try {
+                   const settingsDoc = await getDoc(doc(db, "settings", "agent_config"));
+                   const autoRolloverPaused = settingsDoc.exists() ? settingsDoc.data().autoRolloverPaused : false;
+
+                   if (!autoRolloverPaused) {
+                     const upQ = query(collection(db, "campaigns"), where("status", "==", "upcoming"), orderBy("createdAt", "asc"));
+                     const upSnap = await getDocs(upQ);
+                     if (!upSnap.empty) {
+                       const nextCamp = upSnap.docs[0];
+                       await updateDoc(doc(db, "campaigns", nextCamp.id), {
+                         status: "active",
+                         startedAt: serverTimestamp()
+                       });
+                     }
+                   }
+                 } catch (rolloverErr) {
+                   console.error("Auto-rollover error:", rolloverErr);
+                 }
                }
             }
             
