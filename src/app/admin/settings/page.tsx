@@ -13,11 +13,12 @@ import {
   Info
 } from "lucide-react";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp, collection, addDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 
 export default function AdminSettingsPage() {
+  const { profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
@@ -47,6 +48,17 @@ export default function AdminSettingsPage() {
         ...config,
         updatedAt: serverTimestamp(),
       });
+
+      if (profile) {
+        await addDoc(collection(db, "audit_logs"), {
+          action: "update_agent_config",
+          adminUid: profile.uid,
+          adminName: profile.displayName || "Admin",
+          details: config,
+          timestamp: serverTimestamp()
+        });
+      }
+
       toast.success("Settings updated successfully!");
     } catch (err: any) {
       toast.error(err.message);

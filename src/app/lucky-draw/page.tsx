@@ -24,50 +24,56 @@ export default function LuckyDrawPage() {
   const [loading, setLoading] = useState(true);
   const [recentEntries, setRecentEntries] = useState<any[]>([]);
 
-  useEffect(() => {
-    // 1. Fetch Config
-    const fetchConfig = async () => {
-      const docRef = doc(db, "settings", "agent_config");
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setTargetEntries(data.drawTriggerCount || 1000);
-      }
-    };
-    fetchConfig();
+  const [activeCampaign, setActiveCampaign] = useState<any>(null);
+  const [upcomingCampaigns, setUpcomingCampaigns] = useState<any[]>([]);
 
-    // 2. Listen for total count and recent entries
-    const q = query(
+  useEffect(() => {
+    // 1. Fetch Campaigns
+    const qCamps = query(collection(db, "campaigns"));
+    const unsubCamps = onSnapshot(qCamps, (snapshot) => {
+      const camps = snapshot.docs.map(d => ({id: d.id, ...d.data()})) as any[];
+      const active = camps.find(c => c.status === "active" || c.status === "drawing");
+      const upcoming = camps.filter(c => c.status === "upcoming").sort((a:any, b:any) => a.createdAt?.toMillis() - b.createdAt?.toMillis());
+      
+      setActiveCampaign(active || null);
+      setUpcomingCampaigns(upcoming);
+      
+      if (active) {
+        setTargetEntries(active.targetCoupons);
+        setTotalEntries(active.currentCoupons);
+      }
+    });
+
+    // 2. Listen for recent entries of active campaign
+    const qEntries = query(
       collection(db, "lucky_draw_entries"),
       orderBy("createdAt", "desc"),
       limit(10)
     );
 
-    const unsubscribe = onSnapshot(q, async (snapshot) => {
-      // Get real total count (this is expensive on large collections, but for now it's fine)
-      // In production, we'd use a counter doc.
-      const totalSnap = await getDocs(collection(db, "lucky_draw_entries"));
-      setTotalEntries(totalSnap.size);
-
-      const entries = await Promise.all(snapshot.docs.map(async (docSnap) => {
+    const unsubscribe = onSnapshot(qEntries, async (snapshot) => {
+      // Filter client side to active campaign or just show latest 10 globally.
+      // Doing it globally is fine for "live feed", but let's filter if we have active.
+      const entries = snapshot.docs.map((docSnap) => {
         const data = docSnap.data();
-        
-        // Use pre-computed maskedName if available, else default
         let maskedName = data.maskedName || "Participant";
-
         return {
           id: data.couponId,
+          campaignId: data.campaignId,
           name: maskedName,
           location: "Verified Purchase",
           time: data.createdAt?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || "Just now"
         };
-      }));
+      });
       
       setRecentEntries(entries);
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubCamps();
+      unsubscribe();
+    };
   }, []);
 
   const progress = (totalEntries / targetEntries) * 100;
@@ -91,7 +97,7 @@ export default function LuckyDrawPage() {
                 </div>
                 
                 <h1 className="text-5xl lg:text-7xl font-black tracking-tighter mb-8 leading-none">
-                  iPhone 16 <br /> <span className="opacity-50">Pro Max Draw</span>
+                  {activeCampaign ? activeCampaign.title : "Lucky Draw"}
                 </h1>
 
                 <div className="space-y-6 mb-12">
@@ -118,7 +124,7 @@ export default function LuckyDrawPage() {
                   </div>
                   
                   <p className="text-lg font-medium opacity-80 italic">
-                    The draw will trigger automatically as soon as we hit 1,000 coupons!
+                    The draw will trigger automatically as soon as we hit {targetEntries} coupons!
                   </p>
                 </div>
 
@@ -126,7 +132,7 @@ export default function LuckyDrawPage() {
                   <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
                     <Trophy className="w-8 h-8 mb-4 opacity-50" />
                     <div className="text-sm font-bold opacity-60 mb-1 uppercase tracking-widest">Grand Prize</div>
-                    <div className="text-xl font-black">₹1,44,900 Val</div>
+                    <div className="text-xl font-black">{activeCampaign ? `₹${activeCampaign.prizeValue.toLocaleString()}` : "Valuable"}</div>
                   </div>
                   <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
                     <ShieldCheck className="w-8 h-8 mb-4 opacity-50" />
@@ -153,6 +159,25 @@ export default function LuckyDrawPage() {
                 </div>
               </div>
             </div>
+
+            {upcomingCampaigns.length > 0 && (
+              <div className="bg-background rounded-[3rem] border border-border p-10">
+                <h3 className="text-xl font-black mb-6 uppercase tracking-widest text-muted-foreground">Up Next</h3>
+                <div className="space-y-4">
+                  {upcomingCampaigns.map(camp => (
+                    <div key={camp.id} className="p-6 bg-secondary/30 rounded-2xl border border-border flex justify-between items-center">
+                      <div>
+                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">{camp.campaignId}</div>
+                        <h4 className="font-black text-lg">{camp.title}</h4>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-bold text-primary">{camp.prizeDescription}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right: Real-time Participant Feed */}

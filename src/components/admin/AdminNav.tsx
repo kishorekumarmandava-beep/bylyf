@@ -3,13 +3,14 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, Package, ShoppingBag, ShieldCheck, Settings, LifeBuoy } from "lucide-react";
+import { Users, Package, ShoppingBag, ShieldCheck, Settings, LifeBuoy, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function AdminNav() {
   const pathname = usePathname();
 
   const links = [
+    { name: "Campaigns", href: "/admin/campaigns", icon: Trophy },
     { name: "Users", href: "/admin/users", icon: Users },
     { name: "Products", href: "/admin/products", icon: Package },
     { name: "Orders", href: "/admin/orders", icon: ShoppingBag },

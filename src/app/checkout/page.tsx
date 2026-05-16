@@ -17,7 +17,7 @@ import {
   Clock
 } from "lucide-react";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp, updateDoc, doc, query, where, getDocs, getDoc } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, updateDoc, doc, query, where, getDocs, getDoc, increment } from "firebase/firestore";
 import { mockProducts } from "@/data/mockProducts";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
@@ -215,21 +215,40 @@ export default function CheckoutPage() {
             }
 
             // 4. Calculate Lucky Draw Coupons & Agent Commission
-            const agentConfigSnap = await getDoc(doc(db, "settings", "agent_config"));
-            const agentConfig = agentConfigSnap.exists() ? agentConfigSnap.data() : { commissionType: 'fixed', commissionValue: 500, minSpendForCoupon: 2500 };
+            // Find active campaign
+            const campQ = query(collection(db, "campaigns"), where("status", "in", ["active", "drawing"]));
+            const campSnap = await getDocs(campQ);
+            let activeCampId = null;
+            let activeCampData: any = null;
+            if (!campSnap.empty) {
+               const active = campSnap.docs.find(d => d.data().status === "active");
+               if (active) {
+                 activeCampId = active.id;
+                 activeCampData = active.data();
+               } else {
+                 activeCampId = campSnap.docs[0].id;
+                 activeCampData = campSnap.docs[0].data();
+               }
+            }
+
+            const minSpend = activeCampData ? activeCampData.minSpendForCoupon : 2500;
             
             let generatedCouponIds: string[] = [];
-            if (grandTotal >= 2500) {
+            if (grandTotal >= minSpend) {
               const eligibleItems = items.filter(i => i.luckyDrawEligible);
 
               for (const item of eligibleItems) {
                 for (let j = 0; j < item.quantity; j++) {
-                  const couponId = `BY-${Math.floor(10000 + Math.random() * 90000)}`;
+                  const randomArray = new Uint32Array(1);
+                  window.crypto.getRandomValues(randomArray);
+                  const randomNum = 10000 + (randomArray[0] % 90000);
+                  const couponId = `BY-${randomNum}`;
                   generatedCouponIds.push(couponId);
                   
                   // Save to Firestore
                   await addDoc(collection(db, "lucky_draw_entries"), {
                     couponId,
+                    campaignId: activeCampId || "legacy",
                     userId: user?.uid,
                     maskedName: address.fullName ? address.fullName.split(" ").map((n: string) => n.length > 1 ? n[0] + "***" : n + "***").join(" ") : "Participant",
                     orderId: razorResponse.razorpay_order_id,
@@ -242,6 +261,18 @@ export default function CheckoutPage() {
             }
             
             const couponsEarned = generatedCouponIds.length;
+
+            if (activeCampId && couponsEarned > 0) {
+               await updateDoc(doc(db, "campaigns", activeCampId), {
+                 currentCoupons: increment(couponsEarned)
+               });
+               
+               if (activeCampData && (activeCampData.currentCoupons + couponsEarned) >= activeCampData.targetCoupons && activeCampData.status === "active") {
+                 await updateDoc(doc(db, "campaigns", activeCampId), {
+                   status: "drawing"
+                 });
+               }
+            }
             
             let commissionEarned = 0;
             const referralCode = localStorage.getItem("bylyf_referral_code");

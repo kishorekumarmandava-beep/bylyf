@@ -71,11 +71,18 @@ service cloud.firestore {
       allow write: if isAdmin() || isBootstrapAdmin();
     }
 
+    // Campaigns
+    match /campaigns/{campaignId} {
+      allow read: if true;
+      allow write: if isAdmin() || isBootstrapAdmin();
+    }
+
     // Lucky Draw Entries
     match /lucky_draw_entries/{entryId} {
       allow read: if true;
       allow create: if isSignedIn();
-      allow update: if isAdmin() || isBootstrapAdmin();
+      allow update: if false; // Immutable ledger
+      allow delete: if false; // Immutable ledger
     }
 
     // Tickets (Grievance Support)

@@ -18,25 +18,86 @@ import { db } from "@/lib/firebase";
 import { collection, query, orderBy, limit, onSnapshot, getDocs, where } from "firebase/firestore";
 
 export default function TransparencyPage() {
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string>("all");
   const [recentCoupons, setRecentCoupons] = useState<any[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResult, setSearchResult] = useState<any>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    
+    setIsSearching(true);
+    setSearchError("");
+    setSearchResult(null);
+    
+    try {
+      const q = query(
+        collection(db, "lucky_draw_entries"),
+        where("couponId", "==", searchQuery.trim().toUpperCase())
+      );
+      const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        setSearchError("No coupon found with that ID.");
+      } else {
+        const data = snapshot.docs[0].data();
+        setSearchResult({
+          id: snapshot.docs[0].id,
+          ...data,
+          maskedName: data.maskedName || "Participant"
+        });
+      }
+    } catch (err) {
+      setSearchError("Failed to search for coupon.");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   useEffect(() => {
+    // 0. Fetch Campaigns
+    const fetchCamps = async () => {
+      const snap = await getDocs(query(collection(db, "campaigns"), orderBy("createdAt", "desc")));
+      const campsData = snap.docs.map(d => ({id: d.id, ...d.data()})) as any[];
+      setCampaigns(campsData);
+      
+      if (selectedCampaignId === "all" && campsData.length > 0) {
+        const active = campsData.find(c => c.status === "active" || c.status === "drawing");
+        if (active) setSelectedCampaignId(active.id);
+      }
+    };
+    fetchCamps();
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
     // 1. Listen for recent coupons
-    const q = query(
+    let q = query(
       collection(db, "lucky_draw_entries"),
       orderBy("createdAt", "desc"),
       limit(20)
     );
 
+    if (selectedCampaignId !== "all") {
+      q = query(
+        collection(db, "lucky_draw_entries"),
+        where("campaignId", "==", selectedCampaignId),
+        orderBy("createdAt", "desc"),
+        limit(20)
+      );
+    }
+
     const unsubscribe = onSnapshot(q, async (snapshot) => {
       const coupons = await Promise.all(snapshot.docs.map(async (docSnap) => {
         const data = docSnap.data();
-        
-        // Use pre-computed maskedName if available, else default
         let maskedName = data.maskedName || "Participant";
-
         return {
           id: docSnap.id,
           ...data,
@@ -50,13 +111,18 @@ export default function TransparencyPage() {
 
     // 2. Get total count
     const fetchTotal = async () => {
-      const snap = await getDocs(collection(db, "lucky_draw_entries"));
-      setTotalCount(snap.size);
+      if (selectedCampaignId !== "all") {
+        const campData = campaigns.find(c => c.id === selectedCampaignId);
+        if (campData) setTotalCount(campData.currentCoupons);
+      } else {
+        const snap = await getDocs(collection(db, "lucky_draw_entries"));
+        setTotalCount(snap.size);
+      }
     };
     fetchTotal();
 
     return () => unsubscribe();
-  }, []);
+  }, [selectedCampaignId, campaigns]);
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
@@ -166,6 +232,69 @@ export default function TransparencyPage() {
         </div>
       </section>
 
+      {/* Verification Tool */}
+      <section className="py-12 bg-background">
+        <div className="max-w-3xl mx-auto px-4 text-center">
+          <h3 className="text-3xl font-black mb-6">Verify Your Coupon</h3>
+          <p className="text-muted-foreground mb-8">Enter your Coupon ID below to check its status on the public ledger.</p>
+          <form onSubmit={handleSearch} className="flex gap-4 max-w-lg mx-auto mb-8">
+            <input 
+              type="text" 
+              placeholder="e.g., BY-12345" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 px-6 py-4 bg-secondary/30 border border-border rounded-2xl outline-none focus:ring-2 focus:ring-primary font-black text-lg text-center uppercase"
+            />
+            <button 
+              type="submit" 
+              disabled={isSearching}
+              className="px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-black shadow-xl shadow-primary/20 hover:scale-105 transition-all disabled:opacity-50"
+            >
+              {isSearching ? "Searching..." : "Verify"}
+            </button>
+          </form>
+
+          {searchError && (
+            <div className="p-4 bg-destructive/10 text-destructive rounded-2xl font-bold">
+              {searchError}
+            </div>
+          )}
+
+          {searchResult && (
+            <div className="p-6 bg-success/10 border border-success/20 rounded-3xl text-left">
+              <div className="flex items-center gap-3 mb-4 text-success">
+                <CheckCircle2 className="w-6 h-6" />
+                <h4 className="font-black text-xl">Coupon Verified</h4>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Coupon ID</div>
+                  <div className="font-black font-mono text-lg">{searchResult.couponId}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Participant</div>
+                  <div className="font-bold">{searchResult.maskedName}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Item</div>
+                  <div className="font-bold">{searchResult.itemTitle}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Status</div>
+                  <span className="px-3 py-1 bg-success/20 text-success rounded-full text-[10px] font-black uppercase tracking-widest inline-block mt-1">
+                    {searchResult.status}
+                  </span>
+                </div>
+                <div className="col-span-2">
+                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Timestamp</div>
+                  <div className="font-bold">{searchResult.createdAt?.toDate().toLocaleString()}</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Live Verification Ledger */}
       <section id="verification" className="py-24 bg-secondary/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -179,8 +308,21 @@ export default function TransparencyPage() {
               <p className="text-muted-foreground mt-2">Every coupon issued is recorded here in real-time for public audit.</p>
             </div>
             
-            <div className="flex gap-4">
-              <div className="px-6 py-4 bg-background rounded-2xl border border-border">
+            <div className="flex flex-col sm:flex-row gap-4 items-end">
+              <div className="w-full sm:w-auto">
+                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Select Campaign</div>
+                <select 
+                  value={selectedCampaignId}
+                  onChange={(e) => setSelectedCampaignId(e.target.value)}
+                  className="w-full sm:w-64 px-4 py-3 bg-background border border-border rounded-2xl outline-none font-bold"
+                >
+                  <option value="all">All Campaigns</option>
+                  {campaigns.map(c => (
+                    <option key={c.id} value={c.id}>{c.campaignId} - {c.title}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="px-6 py-3 bg-background rounded-2xl border border-border">
                 <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Total Coupons</div>
                 <div className="text-2xl font-black" id="total-coupons-count">{totalCount}</div>
               </div>
