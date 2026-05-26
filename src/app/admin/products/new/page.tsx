@@ -3,8 +3,7 @@
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import AdminNav from "@/components/admin/AdminNav";
+
 import { 
   Plus, 
   Upload, 
@@ -134,8 +133,6 @@ export default function NewProductPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <Navbar />
-      <AdminNav />
 
       <div className="max-w-5xl mx-auto px-4 py-12">
         <button 

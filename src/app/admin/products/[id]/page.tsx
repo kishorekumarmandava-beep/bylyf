@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter, useParams } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import AdminNav from "@/components/admin/AdminNav";
+
 import { 
   Upload, 
   Trash2, 
@@ -188,8 +187,6 @@ export default function EditProductPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <Navbar />
-      <AdminNav />
 
       <div className="max-w-5xl mx-auto px-4 py-12">
         <button 
