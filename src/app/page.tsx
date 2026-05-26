@@ -11,6 +11,7 @@ import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
 export default function Home() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCampaignActive, setIsCampaignActive] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -72,12 +73,12 @@ export default function Home() {
               {/* Stats */}
               <div className="mt-16 grid grid-cols-3 gap-8 border-t border-border pt-8 animate-in">
                 <div>
-                  <div className="text-3xl font-black">10k+</div>
+                  <div className="text-3xl font-black">100+</div>
                   <div className="text-sm text-muted-foreground uppercase tracking-widest font-bold">Products</div>
                 </div>
                 <div>
-                  <div className="text-3xl font-black">500+</div>
-                  <div className="text-sm text-muted-foreground uppercase tracking-widest font-bold">Lucky Winners</div>
+                  <div className="text-3xl font-black">Buy</div>
+                  <div className="text-sm text-muted-foreground uppercase tracking-widest font-bold">and Get Lucky</div>
                 </div>
                 <div>
                   <div className="text-3xl font-black">1hr</div>
@@ -96,21 +97,23 @@ export default function Home() {
                     <div className="p-4 bg-background/80 backdrop-blur-md rounded-2xl border border-border shadow-xl">
                       <Zap className="w-8 h-8 text-primary" />
                     </div>
-                    <div className="px-6 py-3 bg-primary text-primary-foreground rounded-full font-black text-sm uppercase tracking-widest">
-                      Bumper Draw Active
-                    </div>
+                    {isCampaignActive && (
+                      <div className="px-6 py-3 bg-primary text-primary-foreground rounded-full font-black text-sm uppercase tracking-widest">
+                        Bumper Draw Active
+                      </div>
+                    )}
                   </div>
                   
                   <div className="p-8 bg-background/80 backdrop-blur-md rounded-[2rem] border border-border shadow-2xl transform group-hover:-translate-y-2 transition-transform">
-                    <h3 className="text-2xl font-black mb-2">iPhone 16 Pro Max</h3>
-                    <p className="text-muted-foreground mb-4">Enter the draw with any purchase over ₹999</p>
+                    <h3 className="text-2xl font-black mb-2">Win plot worth 1000000 rs.</h3>
+                    <p className="text-muted-foreground mb-4">Enter the draw with any purchase over ₹999*</p>
                     <div className="flex items-center gap-4">
                       <div className="flex -space-x-3">
                         {[1, 2, 3, 4].map((i: number) => (
                           <div key={i} className="w-10 h-10 rounded-full border-2 border-background bg-secondary"></div>
                         ))}
                       </div>
-                      <span className="text-sm font-bold">+1,240 Participants</span>
+                      <span className="text-sm font-bold">Be the first to participate!</span>
                     </div>
                   </div>
                 </div>

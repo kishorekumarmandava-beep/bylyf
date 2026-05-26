@@ -132,7 +132,7 @@ export default function LuckyDrawPage() {
                   <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
                     <Trophy className="w-8 h-8 mb-4 opacity-50" />
                     <div className="text-sm font-bold opacity-60 mb-1 uppercase tracking-widest">Grand Prize</div>
-                    <div className="text-xl font-black">{activeCampaign ? `₹${activeCampaign.prizeValue.toLocaleString()}` : "Valuable"}</div>
+                    <div className="text-xl font-black">{activeCampaign?.prizeValue ? `₹${activeCampaign.prizeValue.toLocaleString()}` : "Worth ₹1000000"}</div>
                   </div>
                   <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
                     <ShieldCheck className="w-8 h-8 mb-4 opacity-50" />
@@ -146,16 +146,24 @@ export default function LuckyDrawPage() {
             <div className="bg-secondary/30 rounded-[3rem] border border-border p-10">
               <h3 className="text-2xl font-black mb-6 flex items-center gap-3">
                 <Info className="w-6 h-6 text-primary" />
-                How to Enter?
+                Draw Rules & Details
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-4">
                   <div className="w-10 h-10 bg-background rounded-xl flex items-center justify-center font-black border border-border">1</div>
-                  <p className="font-bold text-muted-foreground">Look for products with the <Zap className="w-3 h-3 inline text-primary" /> DRAW ELIGIBLE badge.</p>
+                  <p className="font-bold text-muted-foreground">Look for products with the <Zap className="w-3 h-3 inline text-primary" /> DRAW ELIGIBLE badge to participate.</p>
                 </div>
                 <div className="space-y-4">
                   <div className="w-10 h-10 bg-background rounded-xl flex items-center justify-center font-black border border-border">2</div>
-                  <p className="font-bold text-muted-foreground">The draw will trigger automatically once we hit {targetEntries} coupons!</p>
+                  <p className="font-bold text-muted-foreground">The target to draw is linked to the active campaign. It triggers automatically when the goal of {targetEntries} is met.</p>
+                </div>
+                <div className="space-y-4">
+                  <div className="w-10 h-10 bg-background rounded-xl flex items-center justify-center font-black border border-border">3</div>
+                  <p className="font-bold text-muted-foreground">Winners will be announced on our platform and contacted directly.</p>
+                </div>
+                <div className="space-y-4">
+                  <div className="w-10 h-10 bg-background rounded-xl flex items-center justify-center font-black border border-border">4</div>
+                  <p className="font-bold text-muted-foreground">All purchases are final. Read full terms and conditions for eligibility.</p>
                 </div>
               </div>
             </div>
