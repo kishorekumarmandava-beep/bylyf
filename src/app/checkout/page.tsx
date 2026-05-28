@@ -125,7 +125,8 @@ export default function CheckoutPage() {
   };
 
   const taxBreakdown = calculateTax();
-  const shipping = subtotal > 5000 ? 0 : 99;
+  const hasPhysicalProduct = items.some(item => item.type === "physical");
+  const shipping = hasPhysicalProduct ? 60 : 0;
   const grandTotal = Math.max(0, subtotal - discount + shipping);
 
   const handleNextStep = (e: React.FormEvent) => {

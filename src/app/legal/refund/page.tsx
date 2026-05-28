@@ -25,7 +25,7 @@ export default function RefundPage() {
 
       <h2>3. Shipping Charges</h2>
       <p>
-        Shipping charges are calculated at checkout. We offer Free Shipping on orders above ₹5,000. For orders below this amount, a flat fee of ₹99 is applicable.
+        Shipping charges are calculated at checkout. We offer Free Shipping for all digital products. For physical products, a flat fee of ₹60 is applicable.
       </p>
 
       <h2>4. Return Process</h2>
