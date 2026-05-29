@@ -16,7 +16,7 @@ export default function Home() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const q = query(collection(db, "products"), orderBy("createdAt", "desc"), limit(8));
+        const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
         const querySnapshot = await getDocs(q);
         const fetchedProducts = querySnapshot.docs.map(doc => ({
           id: doc.id,
@@ -134,15 +134,26 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="catalog" className="bg-background">
+      <section id="catalog" className="bg-background space-y-8">
         {loading ? (
           <div className="py-20 text-center font-black italic text-muted-foreground">Loading Collection...</div>
         ) : (
-          <ProductGrid 
-            products={products} 
-            title="Featured Collection" 
-            subtitle="Discover our latest arrivals and top-rated products."
-          />
+          Object.keys(products.reduce((acc: any, p: any) => {
+            const cat = p.category || "Other";
+            if (!acc[cat]) acc[cat] = [];
+            acc[cat].push(p);
+            return acc;
+          }, {})).map((category) => {
+            const catProducts = products.filter(p => (p.category || "Other") === category);
+            return (
+              <ProductGrid 
+                key={category}
+                products={catProducts} 
+                title={category} 
+                subtitle={`Explore our top ${category.toLowerCase()} products.`}
+              />
+            );
+          })
         )}
       </section>
 

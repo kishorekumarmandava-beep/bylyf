@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
+import { collection, getDocs } from "firebase/firestore";
 import { Search, ShoppingCart, User, LogOut, Menu, X, Zap, ShieldCheck, Share2, Package } from "lucide-react";
 import AuthModal from "@/components/auth/AuthModal";
 import { cn } from "@/lib/utils";
@@ -31,21 +32,34 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [dbProducts, setDbProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    // Index mock products on mount
-    indexProducts(mockProducts);
+    const fetchAndIndex = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "products"));
+        const productsList = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Product[];
+        setDbProducts(productsList);
+        indexProducts(productsList);
+      } catch (error) {
+        console.error("Error indexing products for search:", error);
+      }
+    };
+    fetchAndIndex();
   }, []);
 
   useEffect(() => {
     if (searchQuery.length > 1) {
       const ids = searchProducts(searchQuery);
-      const results = mockProducts.filter(p => ids.includes(p.id));
+      const results = dbProducts.filter(p => ids.includes(p.id));
       setSearchResults(results);
     } else {
       setSearchResults([]);
     }
-  }, [searchQuery]);
+  }, [searchQuery, dbProducts]);
 
   const handleSignOut = () => {
     signOut(auth);
@@ -210,8 +224,49 @@ export default function Navbar() {
                 <input 
                   type="text" 
                   placeholder="Search BYLYF..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
                   className="w-full pl-12 pr-4 py-3 bg-secondary rounded-2xl border-none outline-none"
                 />
+
+                {/* Mobile Search Results Dropdown */}
+                <AnimatePresence>
+                  {isSearchFocused && searchQuery.length > 0 && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute top-full left-0 right-0 mt-2 bg-background border border-border rounded-3xl shadow-2xl overflow-hidden p-2 z-50"
+                    >
+                      {searchResults.length > 0 ? (
+                        <div className="max-h-96 overflow-y-auto">
+                          {searchResults.map((p) => (
+                            <Link 
+                              key={p.id} 
+                              href={`/product/${p.slug}`}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className="flex items-center gap-4 p-3 hover:bg-secondary rounded-2xl transition-colors group"
+                            >
+                              <div className="w-12 h-12 bg-secondary rounded-xl overflow-hidden">
+                                <img src={p.images[0]} alt={p.title} className="w-full h-full object-cover" />
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-bold text-sm line-clamp-1">{p.title}</h4>
+                                <p className="text-xs text-muted-foreground">{p.brand} • ₹{p.sellingPrice.toLocaleString('en-IN')}</p>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-8 text-center text-muted-foreground">
+                          <p className="text-sm font-medium">No results found for "{searchQuery}"</p>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <Link href="/shop" className="p-4 bg-secondary rounded-2xl text-center font-semibold">Shop</Link>
