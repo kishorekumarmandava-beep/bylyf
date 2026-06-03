@@ -16,6 +16,8 @@ import {
   ChevronLeft
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { db } from "@/lib/firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, getTotalPrice, getTotalItems } = useCartStore();
@@ -23,16 +25,34 @@ export default function CartPage() {
   
   // Hydration fix
   const [isLoaded, setIsLoaded] = useState(false);
+  const [activeCampaign, setActiveCampaign] = useState<any>(null);
+  const [checkingCampaign, setCheckingCampaign] = useState(true);
+
   useEffect(() => {
     setIsLoaded(true);
+    const fetchCampaign = async () => {
+      try {
+        const q = query(collection(db, "campaigns"), where("status", "==", "active"));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          setActiveCampaign({ id: snap.docs[0].id, ...snap.docs[0].data() });
+        }
+      } catch (err) {
+        console.error("Error fetching campaign for cart:", err);
+      } finally {
+        setCheckingCampaign(false);
+      }
+    };
+    fetchCampaign();
   }, []);
 
   if (!isLoaded) return null;
 
   const subtotal = getTotalPrice();
-  const drawThreshold = 999;
+  const drawThreshold = activeCampaign?.minSpendForCoupon || 999;
   const isEligibleForDraw = subtotal >= drawThreshold;
   const progressToDraw = Math.min((subtotal / drawThreshold) * 100, 100);
+  const hasEligibleItems = items.some(item => item.luckyDrawEligible);
 
   if (items.length === 0) {
     return (
@@ -139,33 +159,35 @@ export default function CartPage() {
           <div className="lg:w-96">
             <div className="sticky top-32 space-y-6">
               {/* Lucky Draw Card */}
-              <div className="bg-primary text-primary-foreground rounded-[2.5rem] p-8 shadow-2xl shadow-primary/20 relative overflow-hidden">
-                <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
-                <div className="relative z-10">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Zap className="w-6 h-6 fill-current" />
-                    <h3 className="font-black uppercase tracking-widest text-sm">Lucky Draw Status</h3>
+              {activeCampaign && hasEligibleItems && (
+                <div className="bg-primary text-primary-foreground rounded-[3rem] p-8 shadow-2xl shadow-primary/20 relative overflow-hidden">
+                  <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Zap className="w-6 h-6 fill-current" />
+                      <h3 className="font-black uppercase tracking-widest text-sm">Lucky Draw Status</h3>
+                    </div>
+                    
+                    {isEligibleForDraw ? (
+                      <div className="space-y-4">
+                        <p className="text-2xl font-black leading-tight">Congrats! You're in the Bumper Draw.</p>
+                        <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                          <div className="h-full bg-white w-full"></div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <p className="text-lg font-bold leading-tight">
+                          Add ₹{(drawThreshold - subtotal).toLocaleString('en-IN')} more to enter the Lucky Draw!
+                        </p>
+                        <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                          <div className="h-full bg-white transition-all duration-500" style={{ width: `${progressToDraw}%` }}></div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  
-                  {isEligibleForDraw ? (
-                    <div className="space-y-4">
-                      <p className="text-2xl font-black leading-tight">Congrats! You're in the Bumper Draw.</p>
-                      <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                        <div className="h-full bg-white w-full"></div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <p className="text-lg font-bold leading-tight">
-                        Add ₹{(drawThreshold - subtotal).toLocaleString('en-IN')} more to enter the Lucky Draw!
-                      </p>
-                      <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                        <div className="h-full bg-white transition-all duration-500" style={{ width: `${progressToDraw}%` }}></div>
-                      </div>
-                    </div>
-                  )}
                 </div>
-              </div>
+              )}
 
               {/* Order Summary */}
               <div className="bg-secondary/30 rounded-[2.5rem] border border-border p-8">
