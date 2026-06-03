@@ -4,13 +4,15 @@ import { Product } from "@/types/product";
 
 export interface CartItem extends Product {
   quantity: number;
+  selectedSize?: string;
+  selectedColor?: string;
 }
 
 interface CartStore {
   items: CartItem[];
-  addItem: (product: Product) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addItem: (product: Product, selectedSize?: string, selectedColor?: string) => void;
+  removeItem: (productId: string, selectedSize?: string, selectedColor?: string) => void;
+  updateQuantity: (productId: string, quantity: number, selectedSize?: string, selectedColor?: string) => void;
   clearCart: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
@@ -20,29 +22,49 @@ export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
-      addItem: (product) => {
+      addItem: (product, selectedSize, selectedColor) => {
         const items = get().items;
-        const existingItem = items.find((item) => item.id === product.id);
+        const existingItem = items.find(
+          (item) =>
+            item.id === product.id &&
+            item.selectedSize === selectedSize &&
+            item.selectedColor === selectedColor
+        );
 
         if (existingItem) {
           set({
             items: items.map((item) =>
-              item.id === product.id
+              item.id === product.id &&
+              item.selectedSize === selectedSize &&
+              item.selectedColor === selectedColor
                 ? { ...item, quantity: item.quantity + 1 }
                 : item
             ),
           });
         } else {
-          set({ items: [...items, { ...product, quantity: 1 }] });
+          set({ items: [...items, { ...product, quantity: 1, selectedSize, selectedColor }] });
         }
       },
-      removeItem: (productId) => {
-        set({ items: get().items.filter((item) => item.id !== productId) });
+      removeItem: (productId, selectedSize, selectedColor) => {
+        set({
+          items: get().items.filter(
+            (item) =>
+              !(
+                item.id === productId &&
+                item.selectedSize === selectedSize &&
+                item.selectedColor === selectedColor
+              )
+          ),
+        });
       },
-      updateQuantity: (productId, quantity) => {
+      updateQuantity: (productId, quantity, selectedSize, selectedColor) => {
         set({
           items: get().items.map((item) =>
-            item.id === productId ? { ...item, quantity } : item
+            item.id === productId &&
+            item.selectedSize === selectedSize &&
+            item.selectedColor === selectedColor
+              ? { ...item, quantity }
+              : item
           ),
         });
       },

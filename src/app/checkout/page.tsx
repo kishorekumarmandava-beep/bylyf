@@ -295,7 +295,9 @@ export default function CheckoutPage() {
                 quantity: i.quantity,
                 price: i.sellingPrice,
                 type: i.type,
-                image: i.images[0]
+                image: i.images[0],
+                selectedSize: i.selectedSize || null,
+                selectedColor: i.selectedColor || null,
               })),
               subtotal,
               discount,
@@ -591,13 +593,22 @@ export default function CheckoutPage() {
               
               <div className="space-y-4 mb-8 max-h-60 overflow-y-auto pr-2 scrollbar-hide">
                 {items.map(item => (
-                  <div key={item.id} className="flex gap-4">
+                  <div key={`${item.id}-${item.selectedSize || ""}-${item.selectedColor || ""}`} className="flex gap-4">
                     <div className="w-16 h-16 bg-secondary rounded-xl overflow-hidden shrink-0">
                       <img src={item.images[0]} alt="" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold truncate">{item.title}</div>
-                      <div className="text-xs text-muted-foreground">Qty: {item.quantity}</div>
+                      <div className="text-xs text-muted-foreground flex flex-col gap-0.5">
+                        <span>Qty: {item.quantity}</span>
+                        {(item.selectedSize || item.selectedColor) && (
+                          <span className="text-[10px] text-primary font-black uppercase">
+                            {item.selectedSize && `Size: ${item.selectedSize}`}
+                            {item.selectedSize && item.selectedColor && " | "}
+                            {item.selectedColor && `Color: ${item.selectedColor}`}
+                          </span>
+                        )}
+                      </div>
                       <div className="text-sm font-black mt-1">₹{(item.sellingPrice * item.quantity).toLocaleString('en-IN')}</div>
                     </div>
                   </div>

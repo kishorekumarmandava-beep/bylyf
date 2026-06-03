@@ -47,7 +47,7 @@ export async function createShiprocketOrder(orderData: any) {
         billing_phone: orderData.phone,
         shipping_is_billing: true,
         order_items: orderData.items.map((item: any) => ({
-          name: item.title,
+          name: `${item.title}${item.selectedSize ? ` (${item.selectedSize})` : ""}${item.selectedColor ? ` [${item.selectedColor}]` : ""}`,
           sku: item.sku || item.id,
           units: item.quantity,
           selling_price: item.price,

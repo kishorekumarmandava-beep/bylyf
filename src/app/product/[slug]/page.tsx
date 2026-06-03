@@ -19,7 +19,8 @@ import {
   ChevronRight,
   Star,
   Info,
-  Maximize2
+  Maximize2,
+  X
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,8 @@ export default function ProductPage() {
   const { hasActiveCampaign } = useActiveCampaign();
 
   const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedColor, setSelectedColor] = useState<string>("");
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -75,13 +78,45 @@ export default function ProductPage() {
 
   const discount = Math.round(((product.mrp - product.sellingPrice) / product.mrp) * 100);
 
+  const hasVariants = product.variants && product.variants.length > 0;
+  const uniqueSizes = hasVariants 
+    ? Array.from(new Set(product.variants?.map(v => v.size))) 
+    : [];
+  const uniqueColors = hasVariants 
+    ? Array.from(new Set(product.variants?.map(v => v.color))) 
+    : [];
+
+  const selectedVariant = hasVariants
+    ? product.variants?.find(v => v.size === selectedSize && v.color === selectedColor)
+    : null;
+
+  const currentStock = hasVariants
+    ? (selectedVariant ? selectedVariant.stock : 0)
+    : product.stock;
+
   const handleAddToCart = () => {
-    addItem(product);
+    if (hasVariants && (!selectedSize || !selectedColor)) {
+      toast.error("Please select both size and color.");
+      return;
+    }
+    if (hasVariants && currentStock <= 0) {
+      toast.error("This combination is out of stock.");
+      return;
+    }
+    addItem(product, selectedSize, selectedColor);
     toast.success("Added to cart!");
   };
 
   const handleBuyNow = () => {
-    addItem(product);
+    if (hasVariants && (!selectedSize || !selectedColor)) {
+      toast.error("Please select both size and color.");
+      return;
+    }
+    if (hasVariants && currentStock <= 0) {
+      toast.error("This combination is out of stock.");
+      return;
+    }
+    addItem(product, selectedSize, selectedColor);
     router.push("/cart");
   };
 
@@ -154,13 +189,99 @@ export default function ProductPage() {
                   <span className="ml-2 text-sm font-black text-foreground">4.9 (124 Reviews)</span>
                 </div>
                 <div className="w-px h-4 bg-border"></div>
-                <div className="text-sm font-bold text-success flex items-center gap-1">
-                  <CheckCircle2 className="w-4 h-4" />
-                  In Stock
+                <div className="text-sm font-bold flex items-center gap-1">
+                  {hasVariants ? (
+                    selectedSize && selectedColor ? (
+                      currentStock > 0 ? (
+                        <span className="text-success flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> In Stock ({currentStock})</span>
+                      ) : (
+                        <span className="text-destructive flex items-center gap-1"><X className="w-4 h-4" /> Out of Stock</span>
+                      )
+                    ) : (
+                      <span className="text-muted-foreground">Select size & color</span>
+                    )
+                  ) : product.stock > 0 ? (
+                    <span className="text-success flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> In Stock</span>
+                  ) : (
+                    <span className="text-destructive flex items-center gap-1"><X className="w-4 h-4" /> Out of Stock</span>
+                  )}
                 </div>
               </div>
 
               <div className="p-8 bg-secondary/50 rounded-[2.5rem] border border-border mb-8">
+                {/* Size & Color Selectors */}
+                {hasVariants && (
+                  <div className="space-y-6 mb-8 border-b border-border pb-6">
+                    {/* Sizes */}
+                    <div className="space-y-3">
+                      <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Select Size</label>
+                      <div className="flex flex-wrap gap-2">
+                        {uniqueSizes.map((size) => {
+                          const sizeStock = product.variants
+                            ?.filter(v => v.size === size)
+                            .reduce((acc, v) => acc + v.stock, 0) || 0;
+                          const isSizeDisabled = sizeStock <= 0;
+                          
+                          return (
+                            <button
+                              key={size}
+                              type="button"
+                              disabled={isSizeDisabled}
+                              onClick={() => {
+                                setSelectedSize(size);
+                                const compatible = product.variants?.some(v => v.size === size && v.color === selectedColor && v.stock > 0);
+                                if (!compatible) setSelectedColor("");
+                              }}
+                              className={cn(
+                                "px-5 py-3 rounded-xl font-bold text-sm border-2 transition-all",
+                                isSizeDisabled 
+                                  ? "border-border text-muted-foreground line-through cursor-not-allowed opacity-40"
+                                  : selectedSize === size
+                                    ? "border-primary bg-primary text-primary-foreground scale-105"
+                                    : "border-border bg-background hover:border-primary/50 text-foreground"
+                              )}
+                            >
+                              {size}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Colors */}
+                    <div className="space-y-3">
+                      <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Select Color</label>
+                      <div className="flex flex-wrap gap-2">
+                        {uniqueColors.map((color) => {
+                          const colorStock = product.variants
+                            ?.filter(v => v.color === color && (!selectedSize || v.size === selectedSize))
+                            .reduce((acc, v) => acc + v.stock, 0) || 0;
+                          const isColorDisabled = colorStock <= 0;
+
+                          return (
+                            <button
+                              key={color}
+                              type="button"
+                              disabled={isColorDisabled}
+                              onClick={() => setSelectedColor(color)}
+                              className={cn(
+                                "px-5 py-3 rounded-xl font-bold text-sm border-2 transition-all",
+                                isColorDisabled
+                                  ? "border-border text-muted-foreground line-through cursor-not-allowed opacity-40"
+                                  : selectedColor === color
+                                    ? "border-primary bg-primary text-primary-foreground scale-105"
+                                    : "border-border bg-background hover:border-primary/50 text-foreground"
+                              )}
+                            >
+                              {color}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-baseline gap-4 mb-2">
                   <span className="text-5xl font-black">₹{product.sellingPrice.toLocaleString('en-IN')}</span>
                   {discount > 0 && (
@@ -174,12 +295,12 @@ export default function ProductPage() {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
+                <p className="text-sm text-muted-foreground flex items-center gap-2 mb-6">
                   Inclusive of all taxes (GST {product.gstRate}%)
                   <Info className="w-4 h-4" />
                 </p>
 
-                <div className="grid grid-cols-2 gap-4 mt-8">
+                <div className="grid grid-cols-2 gap-4">
                   <button 
                     onClick={handleAddToCart}
                     className="py-5 bg-background border-2 border-primary text-primary rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-primary hover:text-primary-foreground transition-all group"

@@ -47,4 +47,14 @@ export interface Product {
   // Timestamps
   createdAt: any;
   updatedAt: any;
+
+  variants?: ProductVariant[];
+}
+
+export interface ProductVariant {
+  id: string;
+  size: string;
+  color: string;
+  stock: number;
+  sku?: string;
 }

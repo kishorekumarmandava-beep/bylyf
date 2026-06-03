@@ -93,7 +93,7 @@ export default function CartPage() {
               <AnimatePresence>
                 {items.map((item) => (
                   <motion.div 
-                    key={item.id}
+                    key={`${item.id}-${item.selectedSize || ""}-${item.selectedColor || ""}`}
                     layout
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -110,10 +110,17 @@ export default function CartPage() {
                           <h3 className="text-lg font-bold truncate group-hover:text-primary transition-colors">{item.title}</h3>
                           <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold mt-1">
                             {item.brand} • {item.type}
+                            {(item.selectedSize || item.selectedColor) && (
+                              <span className="text-primary font-black ml-2 uppercase">
+                                {item.selectedSize && `[Size: ${item.selectedSize}]`}
+                                {item.selectedSize && item.selectedColor && " "}
+                                {item.selectedColor && `[Color: ${item.selectedColor}]`}
+                              </span>
+                            )}
                           </p>
                         </div>
                         <button 
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => removeItem(item.id, item.selectedSize, item.selectedColor)}
                           className="p-2 text-muted-foreground hover:text-destructive transition-colors"
                         >
                           <Trash2 className="w-5 h-5" />
@@ -123,14 +130,14 @@ export default function CartPage() {
                       <div className="flex items-center justify-between mt-6">
                         <div className="flex items-center gap-4 bg-background rounded-xl p-1 border border-border">
                           <button 
-                            onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                            onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1), item.selectedSize, item.selectedColor)}
                             className="p-1.5 hover:bg-secondary rounded-lg transition-colors"
                           >
                             <Minus className="w-4 h-4" />
                           </button>
                           <span className="text-sm font-black w-4 text-center">{item.quantity}</span>
                           <button 
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.id, item.quantity + 1, item.selectedSize, item.selectedColor)}
                             className="p-1.5 hover:bg-secondary rounded-lg transition-colors"
                           >
                             <Plus className="w-4 h-4" />

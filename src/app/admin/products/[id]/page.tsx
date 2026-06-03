@@ -53,6 +53,19 @@ export default function EditProductPage() {
   const [newPreviews, setNewPreviews] = useState<string[]>([]);
   const [digitalFile, setDigitalFile] = useState<File | null>(null);
   const [digitalFileName, setDigitalFileName] = useState("");
+  const [variants, setVariants] = useState<any[]>([]);
+
+  const addVariantRow = () => {
+    setVariants([...variants, { id: Math.random().toString(36).substring(2, 9), size: "", color: "", stock: 0, sku: "" }]);
+  };
+
+  const removeVariantRow = (id: string) => {
+    setVariants(variants.filter(v => v.id !== id));
+  };
+
+  const updateVariantRow = (id: string, field: string, value: any) => {
+    setVariants(variants.map(v => v.id === id ? { ...v, [field]: value } : v));
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -82,6 +95,7 @@ export default function EditProductPage() {
             tags: data.tags ? data.tags.join(", ") : ""
           });
           setExistingImages(data.images || []);
+          setVariants(data.variants || []);
         } else {
           toast.error("Product not found");
           router.push("/admin/products");
@@ -152,10 +166,19 @@ export default function EditProductPage() {
         ...formData,
         mrp: Number(formData.mrp),
         sellingPrice: Number(formData.sellingPrice),
-        stock: Number(formData.stock),
+        stock: variants.length > 0
+          ? variants.reduce((acc, v) => acc + (Number(v.stock) || 0), 0)
+          : Number(formData.stock),
         weight: Number(formData.weight),
         tags: formData.tags.split(",").map(t => t.trim()),
         images: finalImages,
+        variants: variants.map(v => ({
+          id: v.id,
+          size: v.size.trim(),
+          color: v.color.trim(),
+          stock: Number(v.stock) || 0,
+          sku: v.sku?.trim() || ""
+        })),
         updatedAt: serverTimestamp(),
       };
 
@@ -350,6 +373,101 @@ export default function EditProductPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Product Variants */}
+              {formData.type === "physical" && (
+                <div className="bg-secondary/30 rounded-[2.5rem] border border-border p-8 space-y-6">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-xl font-black flex items-center gap-2">
+                      <Package className="w-6 h-6 text-primary" />
+                      Product Variants
+                    </h3>
+                    <button 
+                      type="button" 
+                      onClick={addVariantRow}
+                      className="px-4 py-2 bg-primary/15 text-primary rounded-xl font-black text-xs uppercase tracking-widest hover:bg-primary/20 transition-all"
+                    >
+                      + Add Variant
+                    </button>
+                  </div>
+                  
+                  {variants.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-12 gap-4 text-xs font-bold uppercase tracking-widest text-muted-foreground px-2">
+                        <div className="col-span-3">Size</div>
+                        <div className="col-span-3">Color</div>
+                        <div className="col-span-2">Stock</div>
+                        <div className="col-span-3">SKU (Opt)</div>
+                        <div className="col-span-1"></div>
+                      </div>
+
+                      <div className="space-y-3">
+                        {variants.map((v) => (
+                          <div key={v.id} className="grid grid-cols-12 gap-4 items-center">
+                            <div className="col-span-3">
+                              <input 
+                                type="text"
+                                placeholder="e.g. M, L, XL"
+                                required
+                                value={v.size}
+                                onChange={(e) => updateVariantRow(v.id, "size", e.target.value)}
+                                className="w-full px-3 py-2 bg-background border border-border rounded-xl outline-none text-sm font-bold"
+                              />
+                            </div>
+                            <div className="col-span-3">
+                              <input 
+                                type="text"
+                                placeholder="e.g. Blue, Red"
+                                required
+                                value={v.color}
+                                onChange={(e) => updateVariantRow(v.id, "color", e.target.value)}
+                                className="w-full px-3 py-2 bg-background border border-border rounded-xl outline-none text-sm font-bold"
+                              />
+                            </div>
+                            <div className="col-span-2">
+                              <input 
+                                type="number"
+                                required
+                                min="0"
+                                value={v.stock}
+                                onChange={(e) => updateVariantRow(v.id, "stock", Number(e.target.value))}
+                                className="w-full px-3 py-2 bg-background border border-border rounded-xl outline-none text-sm font-bold"
+                              />
+                            </div>
+                            <div className="col-span-3">
+                              <input 
+                                type="text"
+                                placeholder="Variant SKU"
+                                value={v.sku}
+                                onChange={(e) => updateVariantRow(v.id, "sku", e.target.value)}
+                                className="w-full px-3 py-2 bg-background border border-border rounded-xl outline-none text-sm"
+                              />
+                            </div>
+                            <div className="col-span-1 text-right">
+                              <button 
+                                type="button"
+                                onClick={() => removeVariantRow(v.id)}
+                                className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="pt-4 border-t border-border flex justify-between items-center text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                        <span>Total Variant Stock:</span>
+                        <span className="text-sm font-black text-foreground">{variants.reduce((acc, v) => acc + (Number(v.stock) || 0), 0)} Units</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 bg-background/50 rounded-2xl border border-dashed border-border">
+                      <p className="text-xs text-muted-foreground">No variants added. This product will use single stock model.</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="space-y-8">
