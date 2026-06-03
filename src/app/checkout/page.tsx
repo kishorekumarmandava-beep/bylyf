@@ -78,6 +78,18 @@ export default function CheckoutPage() {
     
     if (items.length === 0) {
       router.push("/cart");
+      return;
+    }
+
+    // Validate that all items with variants have selected size/color
+    const incompleteItem = items.find(item => {
+      const needsVariants = item.variants && item.variants.length > 0;
+      return needsVariants && (!item.selectedSize || !item.selectedColor);
+    });
+
+    if (incompleteItem) {
+      toast.error(`Please select size and color for ${incompleteItem.title} first.`);
+      router.push(`/product/${incompleteItem.slug}`);
     }
   }, [items, router, user]);
 

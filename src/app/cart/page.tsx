@@ -18,6 +18,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
+import toast from "react-hot-toast";
+
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, getTotalPrice, getTotalItems } = useCartStore();
@@ -53,6 +55,22 @@ export default function CartPage() {
   const isEligibleForDraw = subtotal >= drawThreshold;
   const progressToDraw = Math.min((subtotal / drawThreshold) * 100, 100);
   const hasEligibleItems = items.some(item => item.luckyDrawEligible);
+
+  const handleProceedToCheckout = () => {
+    const incompleteItem = items.find(item => {
+      const needsVariants = item.variants && item.variants.length > 0;
+      return needsVariants && (!item.selectedSize || !item.selectedColor);
+    });
+
+    if (incompleteItem) {
+      toast.error(`Please select size and color for ${incompleteItem.title} first.`);
+      router.push(`/product/${incompleteItem.slug}`);
+      return;
+    }
+
+    router.push("/checkout");
+  };
+
 
   if (items.length === 0) {
     return (
@@ -222,7 +240,7 @@ export default function CartPage() {
                 </div>
 
                 <button 
-                  onClick={() => router.push("/checkout")}
+                  onClick={handleProceedToCheckout}
                   className="w-full py-5 bg-primary text-primary-foreground rounded-2xl font-black shadow-2xl shadow-primary/30 hover:scale-[1.02] transition-all flex items-center justify-center gap-2 group"
                 >
                   PROCEED TO CHECKOUT

@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import { useCartStore } from "@/store/useCartStore";
 import toast from "react-hot-toast";
 import { useActiveCampaign } from "@/hooks/useActiveCampaign";
+import { useRouter } from "next/navigation";
 
 interface ProductCardProps {
   product: Product;
@@ -16,13 +17,21 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem);
+  const router = useRouter();
   const discount = Math.round(((product.mrp - product.sellingPrice) / product.mrp) * 100);
   const { hasActiveCampaign } = useActiveCampaign();
 
+  const hasVariants = product.variants && product.variants.length > 0;
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
-    addItem(product);
-    toast.success(`${product.title} added to cart!`);
+    if (hasVariants) {
+      router.push(`/product/${product.slug}`);
+      toast.error("Please select a size and color first!");
+    } else {
+      addItem(product);
+      toast.success(`${product.title} added to cart!`);
+    }
   };
 
   return (

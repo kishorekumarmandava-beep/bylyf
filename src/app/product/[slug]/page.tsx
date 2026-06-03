@@ -40,12 +40,28 @@ export default function ProductPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const q = query(collection(db, "products"), where("slug", "==", slug));
+        console.log("Original slug from useParams:", slug);
+        const decodedSlug = decodeURIComponent(slug as string);
+        console.log("Decoded slug for query:", decodedSlug);
+        
+        const q = query(collection(db, "products"), where("slug", "==", decodedSlug));
         const querySnapshot = await getDocs(q);
         
         if (!querySnapshot.empty) {
           const doc = querySnapshot.docs[0];
           setProduct({ id: doc.id, ...doc.data() } as Product);
+          console.log("Product found via decoded slug query!");
+        } else {
+          console.log("No product found with decoded slug. Trying raw slug:", slug);
+          const qRaw = query(collection(db, "products"), where("slug", "==", slug as string));
+          const querySnapshotRaw = await getDocs(qRaw);
+          if (!querySnapshotRaw.empty) {
+            const doc = querySnapshotRaw.docs[0];
+            setProduct({ id: doc.id, ...doc.data() } as Product);
+            console.log("Product found via raw slug query!");
+          } else {
+            console.log("Product still not found with raw slug query.");
+          }
         }
       } catch (error) {
         console.error("Error fetching product:", error);
@@ -65,7 +81,11 @@ export default function ProductPage() {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center">
         <h1 className="text-4xl font-black mb-4">Product Not Found</h1>
-        <p className="text-muted-foreground mb-8 text-lg">The product you are looking for doesn't exist or has been moved.</p>
+        <p className="text-muted-foreground mb-4 text-lg">The product you are looking for doesn't exist or has been moved.</p>
+        <div className="mb-8 p-4 bg-secondary/30 rounded-2xl border border-border text-left max-w-md">
+          <p className="text-xs text-muted-foreground font-mono">Original Slug: {slug as string}</p>
+          <p className="text-xs text-muted-foreground font-mono mt-1">Decoded Slug: {decodeURIComponent(slug as string)}</p>
+        </div>
         <button 
           onClick={() => router.push("/")}
           className="px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-bold"
