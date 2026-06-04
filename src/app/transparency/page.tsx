@@ -17,8 +17,11 @@ import {
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, limit, onSnapshot, getDocs, where } from "firebase/firestore";
 import { cn } from "@/lib/utils";
+import { useActiveCampaign } from "@/hooks/useActiveCampaign";
+import { notFound } from "next/navigation";
 
 export default function TransparencyPage() {
+  const { hasActiveCampaign, loading: campaignLoading } = useActiveCampaign();
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("all");
   const [recentCoupons, setRecentCoupons] = useState<any[]>([]);
@@ -63,6 +66,7 @@ export default function TransparencyPage() {
   };
 
   useEffect(() => {
+    if (!hasActiveCampaign) return;
     // 0. Fetch Campaigns
     const fetchCamps = async () => {
       const snap = await getDocs(query(collection(db, "campaigns"), orderBy("createdAt", "desc")));
@@ -75,9 +79,10 @@ export default function TransparencyPage() {
       }
     };
     fetchCamps();
-  }, []);
+  }, [hasActiveCampaign]);
 
   useEffect(() => {
+    if (!hasActiveCampaign) return;
     setLoading(true);
     // 1. Listen for recent coupons
     let q = query(
@@ -123,7 +128,20 @@ export default function TransparencyPage() {
     fetchTotal();
 
     return () => unsubscribe();
-  }, [selectedCampaignId, campaigns]);
+  }, [selectedCampaignId, campaigns, hasActiveCampaign]);
+
+  if (campaignLoading) {
+    return (
+      <main className="min-h-screen bg-background">
+        <Navbar />
+        <div className="py-20 text-center font-black italic text-muted-foreground">Loading...</div>
+      </main>
+    );
+  }
+
+  if (!hasActiveCampaign) {
+    notFound();
+  }
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
