@@ -17,7 +17,7 @@ import {
   Clock
 } from "lucide-react";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp, updateDoc, doc, query, where, getDocs, getDoc, increment, orderBy } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, updateDoc, doc, query, where, getDocs, getDoc, increment, orderBy, runTransaction } from "firebase/firestore";
 import { mockProducts } from "@/data/mockProducts";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
@@ -327,6 +327,45 @@ export default function CheckoutPage() {
             };
 
             await addDoc(collection(db, "orders"), finalOrderData);
+
+            // Update inventory stocks
+            try {
+              for (const item of items) {
+                const productRef = doc(db, "products", item.id);
+                await runTransaction(db, async (transaction) => {
+                  const productDoc = await transaction.get(productRef);
+                  if (!productDoc.exists()) return;
+                  
+                  const productData = productDoc.data();
+                  const currentTotalStock = productData.stock || 0;
+                  const newTotalStock = Math.max(0, currentTotalStock - item.quantity);
+                  
+                  const updates: any = {
+                    stock: newTotalStock
+                  };
+                  
+                  if (productData.variants && productData.variants.length > 0 && (item.selectedSize || item.selectedColor)) {
+                    const updatedVariants = productData.variants.map((v: any) => {
+                      const sizeMatches = !item.selectedSize || v.size === item.selectedSize;
+                      const colorMatches = !item.selectedColor || v.color === item.selectedColor;
+                      
+                      if (sizeMatches && colorMatches) {
+                        return {
+                          ...v,
+                          stock: Math.max(0, (v.stock || 0) - item.quantity)
+                        };
+                      }
+                      return v;
+                    });
+                    updates.variants = updatedVariants;
+                  }
+                  
+                  transaction.update(productRef, updates);
+                });
+              }
+            } catch (stockErr) {
+              console.error("Inventory stock update error:", stockErr);
+            }
             
             // 6. Trigger WhatsApp Notifications & Save Commission
             try {
