@@ -11,10 +11,11 @@ import {
   Clock,
   User,
   MapPin,
-  CreditCard
+  CreditCard,
+  X
 } from "lucide-react";
 import { db } from "@/lib/firebase";
-import { collection, query, orderBy, getDocs } from "firebase/firestore";
+import { collection, query, orderBy, getDocs, where } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 
@@ -23,10 +24,46 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [agents, setAgents] = useState<any[]>([]);
 
   useEffect(() => {
     fetchOrders();
+    fetchAgents();
   }, []);
+
+  const fetchAgents = async () => {
+    try {
+      const q = query(collection(db, "users"), where("role", "in", ["agent", "storefront_agent"]));
+      const snapshot = await getDocs(q);
+      const agentsList = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          displayName: data.displayName || "Agent",
+          referralCode: data.referralCode || doc.id.slice(0, 8).toUpperCase()
+        };
+      });
+      setAgents(agentsList);
+    } catch (err) {
+      console.error("Error fetching agents:", err);
+    }
+  };
+
+  const getAgentAttributionText = (referralCode: string) => {
+    if (!referralCode) return "Direct";
+    
+    const matchingAgent = agents.find(
+      a => a.referralCode?.toUpperCase() === referralCode.toUpperCase() ||
+           a.id.slice(0, 8).toUpperCase() === referralCode.toUpperCase()
+    );
+    
+    if (matchingAgent) {
+      return `${matchingAgent.displayName} (${referralCode.toUpperCase()})`;
+    }
+    
+    return referralCode.toUpperCase();
+  };
 
   const fetchOrders = async () => {
     try {
@@ -228,12 +265,15 @@ export default function AdminOrdersPage() {
                     <td className="px-8 py-6">
                       <div className="text-[10px] font-black uppercase tracking-widest">
                         {order.referralCode ? (
-                          <span className="text-primary flex items-center gap-1"><User className="w-3 h-3" /> {order.referralCode}</span>
+                          <span className="text-primary flex items-center gap-1"><User className="w-3 h-3" /> {getAgentAttributionText(order.referralCode)}</span>
                         ) : "Direct"}
                       </div>
                     </td>
                     <td className="px-8 py-6 text-right">
-                      <button className="p-2 hover:bg-secondary rounded-lg transition-colors">
+                      <button 
+                        onClick={() => setSelectedOrder(order)}
+                        className="p-2 hover:bg-secondary rounded-lg transition-colors"
+                      >
                         <ExternalLink className="w-4 h-4" />
                       </button>
                     </td>
@@ -244,6 +284,148 @@ export default function AdminOrdersPage() {
           </div>
         )}
       </div>
+
+      {/* Order Details Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-background border border-border rounded-[3rem] shadow-3xl w-full max-w-3xl overflow-hidden max-h-[90vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="p-8 border-b border-border flex justify-between items-center shrink-0">
+              <div>
+                <h3 className="text-2xl font-black tracking-tight font-sans">Order Details</h3>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1 font-mono">
+                  ID: {selectedOrder.id}
+                </p>
+              </div>
+              <button 
+                onClick={() => setSelectedOrder(null)}
+                className="p-3 bg-secondary rounded-2xl hover:bg-border transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            {/* Modal Content (Scrollable) */}
+            <div className="p-8 overflow-y-auto space-y-8 flex-1">
+              {/* Order Status & Attribution */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-secondary/30 p-6 rounded-3xl border border-border">
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Status</div>
+                  <span className="px-3 py-1 bg-success/10 text-success rounded-full text-[10px] font-black uppercase tracking-widest inline-block">
+                    {selectedOrder.status || "Completed"}
+                  </span>
+                </div>
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Attribution</div>
+                  <div className="font-bold text-sm">
+                    {getAgentAttributionText(selectedOrder.referralCode)}
+                  </div>
+                </div>
+                <div className="sm:col-span-2 border-t border-border/40 pt-4">
+                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Razorpay Payment ID</div>
+                  <div className="font-mono text-xs text-muted-foreground break-all">{selectedOrder.paymentId || "N/A"}</div>
+                </div>
+                <div className="sm:col-span-2 border-t border-border/40 pt-4">
+                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Razorpay Order ID</div>
+                  <div className="font-mono text-xs text-muted-foreground break-all">{selectedOrder.orderId || "N/A"}</div>
+                </div>
+              </div>
+
+              {/* Customer Info */}
+              <div>
+                <h4 className="text-lg font-black mb-4">Customer Info</h4>
+                <div className="p-6 bg-secondary/20 rounded-3xl border border-border text-sm space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Full Name</span>
+                    <span className="font-bold">{selectedOrder.shippingAddress?.fullName || "N/A"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Phone Number</span>
+                    <span className="font-bold">{selectedOrder.shippingAddress?.phone || "N/A"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Address</span>
+                    <span className="font-bold text-right max-w-xs">{selectedOrder.shippingAddress?.addressLine || "N/A"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">City & State</span>
+                    <span className="font-bold">
+                      {selectedOrder.shippingAddress?.city || "N/A"}, {selectedOrder.shippingAddress?.state || "N/A"} - {selectedOrder.shippingAddress?.pincode || ""}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Items Summary */}
+              <div>
+                <h4 className="text-lg font-black mb-4">Items Summary</h4>
+                <div className="space-y-4 bg-background rounded-3xl border border-border p-6">
+                  {selectedOrder.items?.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between py-2 border-b border-border/40 last:border-b-0">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-secondary rounded-xl overflow-hidden shrink-0">
+                          <img src={item.image} alt="" className="w-full h-full object-cover" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-sm">{item.title}</div>
+                          <div className="text-xs text-muted-foreground flex items-center gap-2">
+                            <span>Qty: {item.quantity}</span>
+                            {(item.selectedSize || item.selectedColor) && (
+                              <span className="text-[10px] text-primary font-black uppercase">
+                                {item.selectedSize && `Size: ${item.selectedSize}`}
+                                {item.selectedSize && item.selectedColor && " | "}
+                                {item.selectedColor && `Color: ${item.selectedColor}`}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="font-black text-sm">₹{(item.price * item.quantity).toLocaleString('en-IN')}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Financial Summary */}
+              <div>
+                <h4 className="text-lg font-black mb-4">Financial Summary</h4>
+                <div className="p-6 bg-secondary/20 rounded-3xl border border-border text-sm space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>₹{selectedOrder.subtotal?.toLocaleString('en-IN')}</span>
+                  </div>
+                  {selectedOrder.discount > 0 && (
+                    <div className="flex justify-between text-success font-bold">
+                      <span>Discount</span>
+                      <span>-₹{selectedOrder.discount?.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-black text-base pt-3 border-t border-border/50">
+                    <span>Total Amount</span>
+                    <span>₹{selectedOrder.total?.toLocaleString('en-IN')}</span>
+                  </div>
+                  {selectedOrder.agentCommission > 0 && (
+                    <div className="flex justify-between text-primary font-bold pt-3 border-t border-border/50">
+                      <span>Agent Commission</span>
+                      <span>₹{selectedOrder.agentCommission?.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {/* Modal Footer */}
+            <div className="p-8 border-t border-border flex justify-end shrink-0">
+              <button 
+                onClick={() => setSelectedOrder(null)}
+                className="px-8 py-3 bg-primary text-primary-foreground rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
+              >
+                Close Details
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

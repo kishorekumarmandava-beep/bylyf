@@ -64,7 +64,11 @@ function RoleDropdown({ userId, currentRole, onChanged }: { userId: string; curr
     if (!pendingRole) return;
     setLoading(true);
     try {
-      await updateDoc(doc(db, "users", userId), { role: pendingRole });
+      const updates: any = { role: pendingRole };
+      if (pendingRole === "agent" || pendingRole === "storefront_agent") {
+        updates.referralCode = userId.slice(0, 8).toUpperCase();
+      }
+      await updateDoc(doc(db, "users", userId), updates);
       toast.success(`Role updated to ${getRoleConfig(pendingRole).label}`);
       onChanged();
     } catch (err: any) {
@@ -247,11 +251,16 @@ export default function AdminUsersPage() {
                             )}>
                               {u.displayName?.[0]?.toUpperCase() || "?"}
                             </div>
-                            <div>
+                             <div>
                               <div className="font-black text-sm">{u.displayName || "Anonymous User"}</div>
                               <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
                                 Joined {u.createdAt?.toDate?.().toLocaleDateString() ?? "—"}
                               </div>
+                              {(u.role === "agent" || u.role === "storefront_agent") && (
+                                <div className="mt-1 text-[9px] font-black text-primary font-mono bg-primary/10 px-2 py-0.5 rounded w-fit uppercase tracking-widest">
+                                  Agent ID: {u.referralCode || u.id.slice(0, 8).toUpperCase()}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </td>
