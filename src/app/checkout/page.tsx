@@ -14,7 +14,8 @@ import {
   ArrowRight,
   Truck,
   Info,
-  Clock
+  Clock,
+  Zap
 } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp, updateDoc, doc, query, where, getDocs, getDoc, increment, orderBy, runTransaction } from "firebase/firestore";
@@ -35,7 +36,7 @@ const STORE_STATE = "Telangana"; // Default store location for tax calculation
 
 export default function CheckoutPage() {
   const { items, getTotalPrice, clearCart } = useCartStore();
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const [step, setStep] = useState(1);
@@ -118,6 +119,14 @@ export default function CheckoutPage() {
 
   const subtotal = getTotalPrice();
   const discount = appliedCoupon ? 500 : 0;
+
+  const isLoyaltyMember = profile?.loyaltyDiscountExpiresAt 
+    ? (profile.loyaltyDiscountExpiresAt.toDate 
+        ? profile.loyaltyDiscountExpiresAt.toDate() > new Date() 
+        : new Date(profile.loyaltyDiscountExpiresAt) > new Date())
+    : false;
+
+  const loyaltyDiscount = isLoyaltyMember ? Math.round(subtotal * 0.02) : 0;
   
   // Tax Calculation Logic
   const calculateTax = () => {
@@ -139,7 +148,7 @@ export default function CheckoutPage() {
   const taxBreakdown = calculateTax();
   const hasPhysicalProduct = items.some(item => item.type === "physical");
   const shipping = hasPhysicalProduct ? 60 : 0;
-  const grandTotal = Math.max(0, subtotal - discount + shipping);
+  const grandTotal = Math.max(0, subtotal - discount - loyaltyDiscount + shipping);
 
   const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault();
@@ -313,6 +322,7 @@ export default function CheckoutPage() {
               })),
               subtotal,
               discount,
+              loyaltyDiscount,
               appliedCoupon: appliedCoupon ? appliedCoupon.code : null,
               total: grandTotal,
               shippingAddress: address,
@@ -327,6 +337,22 @@ export default function CheckoutPage() {
             };
 
             await addDoc(collection(db, "orders"), finalOrderData);
+
+            // Update user loyalty membership if draw-eligible items were bought
+            const hasDrawEligibleItems = items.some(i => i.luckyDrawEligible);
+            if (hasDrawEligibleItems && user?.uid) {
+              try {
+                const oneYearFromNow = new Date();
+                oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+                
+                await updateDoc(doc(db, "users", user.uid), {
+                  loyaltyDiscountExpiresAt: oneYearFromNow,
+                  updatedAt: serverTimestamp()
+                });
+              } catch (userErr) {
+                console.error("Failed to update user loyalty discount expiration:", userErr);
+              }
+            }
 
             // Update inventory stocks
             try {
@@ -642,6 +668,15 @@ export default function CheckoutPage() {
             <div className="sticky top-32 bg-background rounded-[2.5rem] border border-border p-8 shadow-xl">
               <h2 className="text-2xl font-black mb-6">Your Order</h2>
               
+              {isLoyaltyMember && (
+                <div className="mb-6 p-4 bg-primary/10 rounded-2xl border border-primary/20 flex items-center gap-3">
+                  <Zap className="w-5 h-5 text-primary fill-current shrink-0 animate-pulse" />
+                  <div className="text-[10px] font-bold text-primary uppercase tracking-wider leading-tight">
+                    Loyalty Status Active! 2% extra discount applied automatically.
+                  </div>
+                </div>
+              )}
+              
               <div className="space-y-4 mb-8 max-h-60 overflow-y-auto pr-2 scrollbar-hide">
                 {items.map(item => (
                   <div key={`${item.id}-${item.selectedSize || ""}-${item.selectedColor || ""}`} className="flex gap-4">
@@ -700,6 +735,12 @@ export default function CheckoutPage() {
                   <div className="flex justify-between text-sm font-medium text-success">
                     <span>Storefront Discount</span>
                     <span>-₹{discount.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+                {loyaltyDiscount > 0 && (
+                  <div className="flex justify-between text-sm font-medium text-success">
+                    <span>2% Loyalty Discount</span>
+                    <span>-₹{loyaltyDiscount.toLocaleString('en-IN')}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm font-medium text-muted-foreground">

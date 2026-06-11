@@ -191,7 +191,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                   <div className="bg-secondary/30 rounded-[2.5rem] border border-border p-8">
                     <div className="flex justify-between items-center mb-6">
                       <h3 className="text-xl font-black">Recent Assets</h3>
@@ -225,6 +225,59 @@ export default function ProfilePage() {
                       <Link href="/#catalog" className="text-sm font-black text-primary hover:underline mt-2 inline-block">Shop now to enter the draw</Link>
                     </div>
                   </div>
+
+                  {(() => {
+                    const isLoyaltyMember = profile?.loyaltyDiscountExpiresAt 
+                      ? (profile.loyaltyDiscountExpiresAt.toDate 
+                          ? profile.loyaltyDiscountExpiresAt.toDate() > new Date() 
+                          : new Date(profile.loyaltyDiscountExpiresAt) > new Date())
+                      : false;
+
+                    const loyaltyExpiryDate = profile?.loyaltyDiscountExpiresAt
+                      ? (profile.loyaltyDiscountExpiresAt.toDate 
+                          ? profile.loyaltyDiscountExpiresAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                          : new Date(profile.loyaltyDiscountExpiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }))
+                      : "";
+
+                    return isLoyaltyMember ? (
+                      <div className="bg-primary/5 rounded-[2.5rem] border border-primary/20 p-8 flex flex-col justify-between relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-primary/10 transition-all"></div>
+                        <div className="relative z-10">
+                          <div className="flex justify-between items-start mb-6">
+                            <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
+                              <Zap className="w-6 h-6 fill-current animate-pulse" />
+                            </div>
+                            <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-black uppercase tracking-widest">
+                              Active Member
+                            </span>
+                          </div>
+                          <h3 className="text-xl font-black mb-2">2% Storewide Discount</h3>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            You get an automatic 2% extra discount on all your purchases at checkout.
+                          </p>
+                        </div>
+                        <div className="pt-6 border-t border-border/50 mt-6 relative z-10">
+                          <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Loyalty Valid Until</div>
+                          <div className="text-sm font-bold text-primary">{loyaltyExpiryDate}</div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-secondary/30 rounded-[2.5rem] border border-border p-8 flex flex-col justify-between">
+                        <div>
+                          <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-black">2% Loyalty Discount</h3>
+                            <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">Inactive</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-relaxed mb-6">
+                            Purchase any draw-eligible item to unlock an automatic 2% extra discount on all purchases for 1 full year!
+                          </p>
+                        </div>
+                        <Link href="/#catalog" className="text-xs font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1 mt-auto">
+                          Shop Eligible Products <ChevronRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             )}

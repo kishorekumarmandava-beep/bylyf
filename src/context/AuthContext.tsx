@@ -27,6 +27,7 @@ export interface UserProfile {
     timestamp: any;
     version: string;
   };
+  loyaltyDiscountExpiresAt?: any;
 }
 
 interface AuthContextType {
