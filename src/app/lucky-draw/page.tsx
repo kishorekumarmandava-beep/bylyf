@@ -136,7 +136,7 @@ export default function LuckyDrawPage() {
                   </div>
                   <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
                     <ShieldCheck className="w-8 h-8 mb-4 opacity-50" />
-                    <div className="text-sm font-bold opacity-60 mb-1 uppercase tracking-widest">Audited By</div>
+                    <div className="text-sm font-bold opacity-60 mb-1 uppercase tracking-widest">Auditable By</div>
                     <div className="text-xl font-black">Third-Party</div>
                   </div>
                 </div>
