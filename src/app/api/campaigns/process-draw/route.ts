@@ -22,23 +22,73 @@ export async function POST(req: Request) {
 
       const campaignData = campaignDoc.data()!;
       if (campaignData.status !== "active") {
-        // If not active, we still increment? No, just return.
-        // Wait, what if someone buys when it's not active? We shouldn't increment.
         return;
       }
 
-      const newCoupons = (campaignData.currentCoupons || 0) + couponsEarned;
+      const oldCoupons = campaignData.currentCoupons || 0;
+      const newCoupons = oldCoupons + couponsEarned;
       const target = campaignData.targetCoupons || 0;
 
       const updates: any = {
         currentCoupons: FieldValue.increment(couponsEarned)
       };
 
+      const intermediateWinners = campaignData.intermediateWinners || [];
+      const previousIntermediateWinnerEntryIds = new Set(intermediateWinners.map((w: any) => w.couponId));
+
+      const oldMilestone = Math.floor(oldCoupons / 50);
+      const newMilestone = Math.floor(newCoupons / 50);
+      
+      let newWinnersAdded = false;
+
+      // Handle intermediate draws every 50 coupons
+      if (newMilestone > oldMilestone) {
+        const entriesSnap = await adminDb.collection("lucky_draw_entries")
+          .where("campaignId", "==", campaignId)
+          .get();
+        const allEntries = entriesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        for (let m = oldMilestone + 1; m <= newMilestone; m++) {
+           const milestoneNumber = m * 50;
+           
+           let prizeName = "Induction Stove / Bluetooth Earphone / Rice Cooker";
+           if (milestoneNumber === 500 || milestoneNumber === 1000 || milestoneNumber === 1500) {
+             prizeName = "5G Cellphone / Cycle";
+           }
+
+           const eligibleEntries = allEntries.filter((e: any) => !previousIntermediateWinnerEntryIds.has(e.couponId));
+           
+           if (eligibleEntries.length > 0) {
+              const randomArray = new Uint32Array(1);
+              crypto.webcrypto.getRandomValues(randomArray);
+              const randomIndex = randomArray[0] % eligibleEntries.length;
+              const winner = eligibleEntries[randomIndex] as any;
+              
+              intermediateWinners.push({
+                 milestone: milestoneNumber,
+                 prizeName,
+                 couponId: winner.couponId,
+                 name: winner.maskedName || "Participant",
+                 userId: winner.userId || "anonymous",
+                 orderId: winner.orderId || "unknown",
+                 drawnAt: new Date().toISOString()
+              });
+              previousIntermediateWinnerEntryIds.add(winner.couponId);
+              newWinnersAdded = true;
+           }
+        }
+      }
+
+      if (newWinnersAdded) {
+         updates.intermediateWinners = intermediateWinners;
+      }
+
+      // Handle bumper draw if target is reached
       if (newCoupons >= target) {
         updates.status = "completed";
         updates.endedAt = FieldValue.serverTimestamp();
 
-        // Pick a winner securely
+        // Pick a bumper winner securely (everyone is eligible)
         const entriesSnap = await adminDb.collection("lucky_draw_entries")
           .where("campaignId", "==", campaignId)
           .get();
@@ -46,7 +96,6 @@ export async function POST(req: Request) {
         if (!entriesSnap.empty) {
           const entries = entriesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
           
-          // Secure random selection
           const randomArray = new Uint32Array(1);
           crypto.webcrypto.getRandomValues(randomArray);
           const randomIndex = randomArray[0] % entries.length;

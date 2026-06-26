@@ -77,6 +77,8 @@ export default function LuckyDrawPage() {
   }, []);
 
   const progress = (totalEntries / targetEntries) * 100;
+  const nextMilestone = (Math.floor(totalEntries / 50) + 1) * 50;
+  const milestoneProgress = ((totalEntries % 50) / 50) * 100;
 
   return (
     <main className="min-h-screen bg-background">
@@ -108,7 +110,7 @@ export default function LuckyDrawPage() {
                     </div>
                     <div className="text-right">
                       <div className="text-xl font-black tracking-tight">{targetEntries}</div>
-                      <div className="text-xs font-bold uppercase tracking-widest opacity-60">Target to Draw</div>
+                      <div className="text-xs font-bold uppercase tracking-widest opacity-60">Target to Bumper Draw</div>
                     </div>
                   </div>
                   
@@ -122,9 +124,30 @@ export default function LuckyDrawPage() {
                       <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent)] animate-[shimmer_2s_infinite]"></div>
                     </motion.div>
                   </div>
+
+                  <div className="mt-6 p-6 bg-white/5 rounded-3xl border border-white/10">
+                    <div className="flex justify-between items-end mb-4">
+                      <div>
+                        <div className="text-sm font-bold uppercase tracking-widest opacity-60">Next Intermediate Draw</div>
+                        <div className="text-2xl font-black tracking-tight">at {nextMilestone} Coupons</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs font-bold uppercase tracking-widest opacity-60">Progress</div>
+                        <div className="text-lg font-black tracking-tight">{totalEntries % 50} / 50</div>
+                      </div>
+                    </div>
+                    <div className="h-3 bg-white/10 rounded-full overflow-hidden p-1">
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${milestoneProgress}%` }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
+                        className="h-full bg-primary-foreground rounded-full"
+                      />
+                    </div>
+                  </div>
                   
-                  <p className="text-lg font-medium opacity-80 italic">
-                    The draw will trigger automatically as soon as we hit {targetEntries} coupons!
+                  <p className="text-lg font-medium opacity-80 italic mt-6">
+                    Intermediate gifts drawn every 50 coupons! Bumper draw triggers at {targetEntries}.
                   </p>
                 </div>
 
@@ -155,18 +178,40 @@ export default function LuckyDrawPage() {
                 </div>
                 <div className="space-y-4">
                   <div className="w-10 h-10 bg-background rounded-xl flex items-center justify-center font-black border border-border">2</div>
-                  <p className="font-bold text-muted-foreground">The target to draw is linked to the active campaign. It triggers automatically when the goal of {targetEntries} is met.</p>
+                  <p className="font-bold text-muted-foreground">Intermediate draws happen every 50 coupons! Win Induction Stoves, Bluetooth Earphones, or Rice Cookers. At 500, 1000, and 1500, win a 5G Cellphone or Cycle!</p>
                 </div>
                 <div className="space-y-4">
                   <div className="w-10 h-10 bg-background rounded-xl flex items-center justify-center font-black border border-border">3</div>
-                  <p className="font-bold text-muted-foreground">Winners will be announced on our platform and contacted directly.</p>
+                  <p className="font-bold text-muted-foreground">The grand Bumper Draw triggers automatically at {targetEntries} coupons. Intermediate winners remain eligible for the Bumper Draw!</p>
                 </div>
                 <div className="space-y-4">
                   <div className="w-10 h-10 bg-background rounded-xl flex items-center justify-center font-black border border-border">4</div>
-                  <p className="font-bold text-muted-foreground">All purchases are final. Read full terms and conditions for eligibility.</p>
+                  <p className="font-bold text-muted-foreground">Winners will be announced on our platform and contacted directly. All purchases are final.</p>
                 </div>
               </div>
             </div>
+
+            {activeCampaign?.intermediateWinners && activeCampaign.intermediateWinners.length > 0 && (
+              <div className="bg-background rounded-[3rem] border border-border p-10">
+                <h3 className="text-2xl font-black mb-6 flex items-center gap-3">
+                  <Trophy className="w-6 h-6 text-primary" />
+                  Recent Intermediate Winners
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[...activeCampaign.intermediateWinners].reverse().slice(0, 6).map((winner: any, idx: number) => (
+                    <div key={idx} className="p-4 bg-secondary/30 rounded-2xl border border-border flex items-center gap-4">
+                      <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center font-black text-sm">
+                        {winner.milestone}
+                      </div>
+                      <div>
+                        <div className="font-black">{winner.name}</div>
+                        <div className="text-xs font-bold text-muted-foreground">{winner.prizeName}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {upcomingCampaigns.length > 0 && (
               <div className="bg-background rounded-[3rem] border border-border p-10">

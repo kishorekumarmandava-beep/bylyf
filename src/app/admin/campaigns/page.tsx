@@ -302,6 +302,23 @@ export default function AdminCampaignsPage() {
                   </div>
                 </div>
 
+                {activeCampaign.intermediateWinners && activeCampaign.intermediateWinners.length > 0 && (
+                  <div className="mb-8">
+                    <h4 className="font-bold text-sm text-muted-foreground uppercase tracking-widest mb-3">Intermediate Winners</h4>
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                      {[...activeCampaign.intermediateWinners].reverse().map((w: any, i: number) => (
+                        <div key={i} className="flex justify-between items-center p-3 bg-background rounded-xl border border-border">
+                          <div>
+                            <span className="font-black mr-2">#{w.milestone}</span>
+                            <span className="text-sm font-bold">{w.name}</span>
+                          </div>
+                          <div className="text-xs text-primary font-bold text-right">{w.prizeName}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex gap-4">
                   <button 
                     onClick={() => forceCloseCampaign(activeCampaign.id, true)}
@@ -362,7 +379,14 @@ export default function AdminCampaignsPage() {
                             {c.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 font-mono text-xs text-primary">{c.winnerEntryId || "N/A"}</td>
+                        <td className="px-6 py-4">
+                          <div className="font-mono text-xs text-primary font-bold">{c.winnerEntryId ? `Bumper: ${c.winnerEntryId}` : "N/A"}</div>
+                          {c.intermediateWinners && c.intermediateWinners.length > 0 && (
+                            <div className="text-[10px] text-muted-foreground mt-1 font-bold">
+                              +{c.intermediateWinners.length} intermediate
+                            </div>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
