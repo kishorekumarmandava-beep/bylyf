@@ -119,8 +119,8 @@ export default function ProductPage() {
       toast.error("Please select both size and color.");
       return;
     }
-    if (hasVariants && currentStock <= 0) {
-      toast.error("This combination is out of stock.");
+    if (currentStock <= 0) {
+      toast.error(hasVariants ? "This combination is out of stock." : "This product is out of stock.");
       return;
     }
     addItem(product, selectedSize, selectedColor);
@@ -132,8 +132,8 @@ export default function ProductPage() {
       toast.error("Please select both size and color.");
       return;
     }
-    if (hasVariants && currentStock <= 0) {
-      toast.error("This combination is out of stock.");
+    if (currentStock <= 0) {
+      toast.error(hasVariants ? "This combination is out of stock." : "This product is out of stock.");
       return;
     }
     addItem(product, selectedSize, selectedColor);
@@ -323,14 +323,16 @@ export default function ProductPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <button 
                     onClick={handleAddToCart}
-                    className="py-5 bg-background border-2 border-primary text-primary rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-primary hover:text-primary-foreground transition-all group"
+                    disabled={currentStock <= 0}
+                    className="py-5 bg-background border-2 border-primary text-primary rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-primary hover:text-primary-foreground transition-all group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-background disabled:hover:text-primary"
                   >
                     <ShoppingCart className="w-6 h-6 group-hover:scale-110 transition-transform" />
                     ADD TO CART
                   </button>
                   <button 
                     onClick={handleBuyNow}
-                    className="py-5 bg-primary text-primary-foreground rounded-2xl font-black shadow-2xl shadow-primary/30 hover:scale-[1.02] transition-all"
+                    disabled={currentStock <= 0}
+                    className="py-5 bg-primary text-primary-foreground rounded-2xl font-black shadow-2xl shadow-primary/30 hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   >
                     BUY NOW
                   </button>
