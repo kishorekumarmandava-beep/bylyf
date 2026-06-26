@@ -25,6 +25,10 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (product.stock <= 0) {
+      toast.error("This product is out of stock!");
+      return;
+    }
     if (hasVariants) {
       router.push(`/product/${product.slug}`);
       toast.error("Please select a size and color first!");
@@ -102,7 +106,8 @@ export default function ProductCard({ product }: ProductCardProps) {
 
           <button 
             onClick={handleAddToCart}
-            className="p-4 bg-primary text-primary-foreground rounded-2xl hover:scale-110 transition-transform active:scale-95 shadow-lg shadow-primary/20"
+            disabled={product.stock <= 0}
+            className="p-4 bg-primary text-primary-foreground rounded-2xl hover:scale-110 transition-transform active:scale-95 shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:active:scale-100"
           >
             <ShoppingCart className="w-5 h-5" />
           </button>

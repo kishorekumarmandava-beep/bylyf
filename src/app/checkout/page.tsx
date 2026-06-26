@@ -174,6 +174,28 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async () => {
     setLoading(true);
     try {
+      // 0. Verify Stock Real-time before taking payment
+      for (const item of items) {
+        const productRef = doc(db, "products", item.id);
+        const productDoc = await getDoc(productRef);
+        
+        if (!productDoc.exists()) {
+          throw new Error(`Product ${item.title} no longer exists.`);
+        }
+        
+        const data = productDoc.data();
+        if (item.selectedSize || item.selectedColor) {
+           const variant = data.variants?.find((v: any) => v.size === item.selectedSize && v.color === item.selectedColor);
+           if (!variant || variant.stock < item.quantity) {
+             throw new Error(`${item.title} does not have enough stock.`);
+           }
+        } else {
+           if ((data.stock || 0) < item.quantity) {
+             throw new Error(`Not enough stock for ${item.title}. Only ${data.stock || 0} left.`);
+           }
+        }
+      }
+
       const res = await loadRazorpayScript();
 
       if (!res) {
