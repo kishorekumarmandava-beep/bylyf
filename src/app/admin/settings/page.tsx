@@ -25,7 +25,6 @@ export default function AdminSettingsPage() {
   const [config, setConfig] = useState({
     commissionType: "fixed" as "fixed" | "percentage",
     commissionValue: 500,
-    minSpendForCoupon: 999,
     drawTriggerCount: 1000,
   });
 
@@ -159,17 +158,6 @@ export default function AdminSettingsPage() {
                   className="w-full px-4 py-3.5 bg-background border border-border rounded-2xl outline-none font-black text-lg"
                 />
                 <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest ml-1">Draw triggers at this many coupons issued</p>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-bold ml-1">Spend per Coupon (₹)</label>
-                <input 
-                  type="number" 
-                  value={config.minSpendForCoupon}
-                  onChange={(e) => setConfig({...config, minSpendForCoupon: Number(e.target.value)})}
-                  className="w-full px-4 py-3.5 bg-background border border-border rounded-2xl outline-none font-black text-lg"
-                />
-                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest ml-1">Amount spent on eligible items to earn 1 coupon</p>
               </div>
             </div>
           </div>

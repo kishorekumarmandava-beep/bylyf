@@ -253,10 +253,8 @@ export default function CheckoutPage() {
                }
             }
 
-            const minSpend = activeCampData ? activeCampData.minSpendForCoupon : 2500;
-            
             let generatedCouponIds: string[] = [];
-            if (activeCampId && grandTotal >= minSpend) {
+            if (activeCampId) {
               const eligibleItems = items.filter(i => i.luckyDrawEligible);
 
               for (const item of eligibleItems) {

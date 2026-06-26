@@ -33,8 +33,7 @@ export default function AdminCampaignsPage() {
     title: "",
     prizeDescription: "",
     prizeValue: "",
-    targetCoupons: "",
-    minSpendForCoupon: "2500"
+    targetCoupons: ""
   });
 
   useEffect(() => {
@@ -93,7 +92,7 @@ export default function AdminCampaignsPage() {
 
   const handleCreateCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCampaign.title || !newCampaign.prizeDescription || !newCampaign.targetCoupons || !newCampaign.minSpendForCoupon) {
+    if (!newCampaign.title || !newCampaign.prizeDescription || !newCampaign.targetCoupons) {
       toast.error("Please fill all required fields");
       return;
     }
@@ -112,7 +111,6 @@ export default function AdminCampaignsPage() {
         targetCoupons: Number(newCampaign.targetCoupons),
         currentCoupons: 0,
         status: isFirst ? "active" : "upcoming",
-        minSpendForCoupon: Number(newCampaign.minSpendForCoupon),
         winnerEntryId: null,
         winnerDetails: null,
         createdAt: serverTimestamp(),
@@ -137,8 +135,7 @@ export default function AdminCampaignsPage() {
         title: "",
         prizeDescription: "",
         prizeValue: "",
-        targetCoupons: "",
-        minSpendForCoupon: "2500"
+        targetCoupons: ""
       });
     } catch (err: any) {
       toast.error("Failed to create campaign: " + err.message);
@@ -486,15 +483,6 @@ export default function AdminCampaignsPage() {
                     className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-xl mt-1 focus:ring-2 focus:ring-primary outline-none font-mono"
                   />
                 </div>
-              </div>
-              <div>
-                <label className="text-sm font-bold ml-1">Spend Per Coupon (₹)</label>
-                <input 
-                  type="number" 
-                  value={newCampaign.minSpendForCoupon}
-                  onChange={e => setNewCampaign({...newCampaign, minSpendForCoupon: e.target.value})}
-                  className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-xl mt-1 focus:ring-2 focus:ring-primary outline-none font-mono"
-                />
               </div>
               
               <button 

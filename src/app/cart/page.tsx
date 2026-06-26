@@ -51,10 +51,8 @@ export default function CartPage() {
   if (!isLoaded) return null;
 
   const subtotal = getTotalPrice();
-  const drawThreshold = activeCampaign?.minSpendForCoupon || 999;
-  const isEligibleForDraw = subtotal >= drawThreshold;
-  const progressToDraw = Math.min((subtotal / drawThreshold) * 100, 100);
   const hasEligibleItems = items.some(item => item.luckyDrawEligible);
+  const eligibleItemCount = items.filter(i => i.luckyDrawEligible).reduce((sum, item) => sum + item.quantity, 0);
 
   const handleProceedToCheckout = () => {
     const incompleteItem = items.find(item => {
@@ -184,7 +182,7 @@ export default function CartPage() {
           <div className="lg:w-96">
             <div className="sticky top-32 space-y-6">
               {/* Lucky Draw Card */}
-              {activeCampaign && hasEligibleItems && (
+              {activeCampaign && (
                 <div className="bg-primary text-primary-foreground rounded-[3rem] p-8 shadow-2xl shadow-primary/20 relative overflow-hidden">
                   <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
                   <div className="relative z-10">
@@ -193,21 +191,16 @@ export default function CartPage() {
                       <h3 className="font-black uppercase tracking-widest text-sm">Lucky Draw Status</h3>
                     </div>
                     
-                    {isEligibleForDraw ? (
+                    {hasEligibleItems ? (
                       <div className="space-y-4">
-                        <p className="text-2xl font-black leading-tight">Congrats! You're in the Bumper Draw.</p>
-                        <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                          <div className="h-full bg-white w-full"></div>
-                        </div>
+                        <p className="text-2xl font-black leading-tight">Congrats! You're getting {eligibleItemCount} Lucky Draw token{eligibleItemCount > 1 ? 's' : ''}.</p>
+                        <div className="text-sm opacity-90 font-medium">Checkout now to secure your entry!</div>
                       </div>
                     ) : (
                       <div className="space-y-4">
                         <p className="text-lg font-bold leading-tight">
-                          Add ₹{(drawThreshold - subtotal).toLocaleString('en-IN')} more to enter the Lucky Draw!
+                          Add a Lucky Draw eligible item to your cart to enter!
                         </p>
-                        <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                          <div className="h-full bg-white transition-all duration-500" style={{ width: `${progressToDraw}%` }}></div>
-                        </div>
                       </div>
                     )}
                   </div>
