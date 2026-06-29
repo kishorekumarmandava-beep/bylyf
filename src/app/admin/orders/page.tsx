@@ -15,7 +15,7 @@ import {
   X
 } from "lucide-react";
 import { db } from "@/lib/firebase";
-import { collection, query, orderBy, getDocs, where } from "firebase/firestore";
+import { collection, query, orderBy, getDocs, where, doc, updateDoc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 
@@ -26,6 +26,52 @@ export default function AdminOrdersPage() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [agents, setAgents] = useState<any[]>([]);
+
+  // New tracking edit state
+  const [updating, setUpdating] = useState(false);
+  const [editStatus, setEditStatus] = useState("");
+  const [editCourier, setEditCourier] = useState("");
+  const [editTracking, setEditTracking] = useState("");
+
+  useEffect(() => {
+    if (selectedOrder) {
+      setEditStatus(selectedOrder.status || "paid");
+      setEditCourier(selectedOrder.courierPartner || "In-House Delivery");
+      setEditTracking(selectedOrder.trackingNumber || "");
+    }
+  }, [selectedOrder]);
+
+  const handleUpdateTracking = async () => {
+    if (!selectedOrder) return;
+    setUpdating(true);
+    try {
+      const orderRef = doc(db, "orders", selectedOrder.id);
+      await updateDoc(orderRef, {
+        status: editStatus,
+        courierPartner: editCourier,
+        trackingNumber: editTracking
+      });
+      
+      toast.success("Order updated successfully!");
+      setOrders(prev => prev.map(o => o.id === selectedOrder.id ? {
+        ...o,
+        status: editStatus,
+        courierPartner: editCourier,
+        trackingNumber: editTracking
+      } : o));
+      setSelectedOrder({
+        ...selectedOrder,
+        status: editStatus,
+        courierPartner: editCourier,
+        trackingNumber: editTracking
+      });
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to update order.");
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   useEffect(() => {
     fetchOrders();
@@ -259,7 +305,7 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-8 py-6">
                       <div className="inline-flex px-3 py-1 bg-success/10 text-success rounded-full text-[10px] font-black uppercase tracking-widest">
-                        Completed
+                        {order.status || "paid"}
                       </div>
                     </td>
                     <td className="px-8 py-6">
@@ -307,27 +353,67 @@ export default function AdminOrdersPage() {
             
             {/* Modal Content (Scrollable) */}
             <div className="p-8 overflow-y-auto space-y-8 flex-1">
-              {/* Order Status & Attribution */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-secondary/30 p-6 rounded-3xl border border-border">
-                <div>
-                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Status</div>
-                  <span className="px-3 py-1 bg-success/10 text-success rounded-full text-[10px] font-black uppercase tracking-widest inline-block">
-                    {selectedOrder.status || "Completed"}
-                  </span>
-                </div>
-                <div>
-                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Attribution</div>
-                  <div className="font-bold text-sm">
-                    {getAgentAttributionText(selectedOrder.referralCode)}
+              {/* Order Status & Tracking Admin Tools */}
+              <div className="bg-secondary/30 p-6 rounded-3xl border border-border space-y-6">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="text-lg font-black">Tracking & Status</h4>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    Attribution: {getAgentAttributionText(selectedOrder.referralCode)}
                   </div>
                 </div>
-                <div className="sm:col-span-2 border-t border-border/40 pt-4">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Razorpay Payment ID</div>
-                  <div className="font-mono text-xs text-muted-foreground break-all">{selectedOrder.paymentId || "N/A"}</div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 block">Status</label>
+                    <select 
+                      value={editStatus}
+                      onChange={(e) => setEditStatus(e.target.value)}
+                      className="w-full px-4 py-2 bg-background border border-border rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="paid">Paid (Unfulfilled)</option>
+                      <option value="processing">Processing</option>
+                      <option value="shipped">Shipped</option>
+                      <option value="delivered">Delivered</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 block">Courier Partner</label>
+                    <select 
+                      value={editCourier}
+                      onChange={(e) => setEditCourier(e.target.value)}
+                      className="w-full px-4 py-2 bg-background border border-border rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="In-House Delivery">In-House Delivery</option>
+                      <option value="Shiprocket">Shiprocket</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 block">Tracking Number</label>
+                    <input 
+                      type="text"
+                      value={editTracking}
+                      onChange={(e) => setEditTracking(e.target.value)}
+                      placeholder="e.g. AWB12345678"
+                      className="w-full px-4 py-2 bg-background border border-border rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
                 </div>
-                <div className="sm:col-span-2 border-t border-border/40 pt-4">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Razorpay Order ID</div>
-                  <div className="font-mono text-xs text-muted-foreground break-all">{selectedOrder.orderId || "N/A"}</div>
+
+                <div className="flex justify-between items-center pt-4 border-t border-border/40">
+                  <div className="space-y-1">
+                    <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Razorpay Details</div>
+                    <div className="font-mono text-[10px] text-muted-foreground break-all">
+                      Pay: {selectedOrder.paymentId || "N/A"} | Ord: {selectedOrder.orderId || "N/A"}
+                    </div>
+                  </div>
+                  <button 
+                    onClick={handleUpdateTracking}
+                    disabled={updating}
+                    className="px-6 py-2 bg-primary text-primary-foreground rounded-xl text-xs font-black uppercase tracking-widest shadow-lg hover:shadow-primary/20 transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    {updating ? "Saving..." : "Update Tracking"}
+                  </button>
                 </div>
               </div>
 

@@ -226,8 +226,16 @@ export default function OrderTrackingPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Courier Partner</span>
-                    <span className="font-bold text-primary">{order.items.some((i: any) => i.type === "physical") ? "Shiprocket" : "Instant Delivery"}</span>
+                    <span className="font-bold text-primary">
+                      {order.courierPartner || (order.items.some((i: any) => i.type === "physical") ? "In-House Delivery" : "Instant Delivery")}
+                    </span>
                   </div>
+                  {order.trackingNumber && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Tracking Number</span>
+                      <span className="font-bold text-primary">{order.trackingNumber}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 

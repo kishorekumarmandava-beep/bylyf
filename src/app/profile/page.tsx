@@ -343,9 +343,12 @@ export default function ProfilePage() {
                             <div className="text-sm font-bold font-mono uppercase">{order.id.slice(0, 8)}</div>
                           </div>
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex items-center gap-4">
+                          <Link href={`/invoice/${order.id}`} target="_blank" className="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+                            <FileText className="w-4 h-4" /> View Invoice
+                          </Link>
                           <span className="px-4 py-2 bg-success/10 text-success rounded-full text-xs font-black uppercase tracking-widest">
-                            {order.status}
+                            {order.status || "paid"}
                           </span>
                         </div>
                       </div>
