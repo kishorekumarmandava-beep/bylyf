@@ -33,6 +33,7 @@ const INDIAN_STATES = [
 ];
 
 const STORE_STATE = "Telangana"; // Default store location for tax calculation
+const KURNOOL_COD_PINCODES = ["518001", "518002", "518003", "518004", "518005"];
 
 export default function CheckoutPage() {
   const { items, getTotalPrice, clearCart } = useCartStore();
@@ -41,6 +42,7 @@ export default function CheckoutPage() {
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">("online");
 
   // Redirect if logged out
   useEffect(() => {
@@ -157,6 +159,9 @@ export default function CheckoutPage() {
         toast.error("Please fill all shipping details");
         return;
       }
+      if (!KURNOOL_COD_PINCODES.includes(address.pincode) && paymentMethod === "cod") {
+        setPaymentMethod("online");
+      }
       setStep(2);
     }
   };
@@ -194,6 +199,97 @@ export default function CheckoutPage() {
              throw new Error(`Not enough stock for ${item.title}. Only ${data.stock || 0} left.`);
            }
         }
+      }
+
+      if (paymentMethod === "cod") {
+        // 1. Mark coupon as redeemed if applicable (storefront discount coupon)
+        if (appliedCoupon) {
+          await updateDoc(doc(db, "coupons", appliedCoupon.id), {
+            status: "redeemed",
+            redeemedBy: user?.uid,
+            redeemedAt: serverTimestamp()
+          });
+        }
+
+        // 2. Save Order to Firestore (Deferred lucky draw)
+        const finalOrderData = {
+          userId: user?.uid,
+          items: items.map(i => ({
+            id: i.id,
+            title: i.title,
+            quantity: i.quantity,
+            price: i.sellingPrice,
+            type: i.type,
+            image: i.images[0],
+            selectedSize: i.selectedSize || null,
+            selectedColor: i.selectedColor || null,
+          })),
+          subtotal,
+          discount,
+          loyaltyDiscount,
+          appliedCoupon: appliedCoupon ? appliedCoupon.code : null,
+          total: grandTotal,
+          shippingAddress: address,
+          couponsEarned: 0, // Deferred until delivery
+          couponIds: [],
+          referralCode: localStorage.getItem("bylyf_referral_code") || null,
+          agentCommission: 0, // Deferred until delivery
+          paymentId: "COD",
+          orderId: `cod_${Date.now()}`,
+          paymentMethod: "cod",
+          courierPartner: "In-House Delivery",
+          status: "processing", // Pending payment
+          createdAt: serverTimestamp(),
+        };
+
+        const orderDocRef = await addDoc(collection(db, "orders"), finalOrderData);
+
+        // 3. Update inventory stocks
+        try {
+          for (const item of items) {
+            const productRef = doc(db, "products", item.id);
+            await runTransaction(db, async (transaction) => {
+              const productDoc = await transaction.get(productRef);
+              if (!productDoc.exists()) return;
+              
+              const productData = productDoc.data();
+              const currentTotalStock = productData.stock || 0;
+              const newTotalStock = Math.max(0, currentTotalStock - item.quantity);
+              
+              const updates: any = {
+                stock: newTotalStock
+              };
+              
+              if (productData.variants && productData.variants.length > 0 && (item.selectedSize || item.selectedColor)) {
+                const updatedVariants = productData.variants.map((v: any) => {
+                  const sizeMatches = !item.selectedSize || v.size === item.selectedSize;
+                  const colorMatches = !item.selectedColor || v.color === item.selectedColor;
+                  
+                  if (sizeMatches && colorMatches) {
+                    return {
+                      ...v,
+                      stock: Math.max(0, (v.stock || 0) - item.quantity)
+                    };
+                  }
+                  return v;
+                });
+                updates.variants = updatedVariants;
+              }
+              
+              transaction.update(productRef, updates);
+            });
+          }
+        } catch (stockErr) {
+          console.error("Inventory stock update error:", stockErr);
+        }
+
+        // Clean up referral
+        localStorage.removeItem("bylyf_referral_code");
+        
+        toast.success("Order Placed Successfully via Cash on Delivery!");
+        clearCart();
+        router.push("/profile");
+        return; // Exit here for COD
       }
 
       const res = await loadRazorpayScript();
@@ -352,6 +448,7 @@ export default function CheckoutPage() {
               agentCommission: commissionEarned,
               paymentId: razorResponse.razorpay_payment_id,
               orderId: razorResponse.razorpay_order_id,
+              paymentMethod: "online",
               status: "paid",
               createdAt: serverTimestamp(),
             };
@@ -651,7 +748,13 @@ export default function CheckoutPage() {
                     </button>
                   </div>
 
-                  <div className="p-6 bg-background rounded-3xl border border-primary/20 flex items-center justify-between mb-8">
+                  <div 
+                    onClick={() => setPaymentMethod("online")}
+                    className={cn(
+                      "p-6 bg-background rounded-3xl border flex items-center justify-between mb-4 cursor-pointer transition-all",
+                      paymentMethod === "online" ? "border-primary/50 shadow-md ring-2 ring-primary/20" : "border-border hover:border-primary/30"
+                    )}
+                  >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
                         <CreditCard className="w-6 h-6 text-primary" />
@@ -661,14 +764,50 @@ export default function CheckoutPage() {
                         <div className="text-xs text-muted-foreground uppercase tracking-widest font-bold">UPI, Cards, Netbanking</div>
                       </div>
                     </div>
-                    <div className="w-6 h-6 rounded-full border-4 border-primary flex items-center justify-center">
-                      <div className="w-2.5 h-2.5 bg-primary rounded-full"></div>
+                    <div className={cn("w-6 h-6 rounded-full border-4 flex items-center justify-center", paymentMethod === "online" ? "border-primary" : "border-border")}>
+                      {paymentMethod === "online" && <div className="w-2.5 h-2.5 bg-primary rounded-full"></div>}
                     </div>
                   </div>
 
-                  <div className="p-6 bg-secondary/30 rounded-3xl border border-dashed border-border text-center">
-                    <p className="text-sm text-muted-foreground">Secure payment gateway powered by Razorpay</p>
+                  <div 
+                    onClick={() => {
+                      if (KURNOOL_COD_PINCODES.includes(address.pincode)) {
+                        setPaymentMethod("cod");
+                      }
+                    }}
+                    className={cn(
+                      "p-6 bg-background rounded-3xl border flex items-center justify-between mb-8 transition-all",
+                      KURNOOL_COD_PINCODES.includes(address.pincode) ? "cursor-pointer hover:border-primary/30" : "opacity-50 cursor-not-allowed",
+                      paymentMethod === "cod" ? "border-primary/50 shadow-md ring-2 ring-primary/20" : "border-border"
+                    )}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-success/10 rounded-2xl flex items-center justify-center">
+                        <Truck className="w-6 h-6 text-success" />
+                      </div>
+                      <div>
+                        <div className="font-bold">Cash on Delivery (In-House)</div>
+                        <div className="text-xs text-muted-foreground uppercase tracking-widest font-bold">
+                          {KURNOOL_COD_PINCODES.includes(address.pincode) 
+                            ? "Available in your area" 
+                            : "Only available in select Kurnool areas"}
+                        </div>
+                      </div>
+                    </div>
+                    <div className={cn("w-6 h-6 rounded-full border-4 flex items-center justify-center", paymentMethod === "cod" ? "border-primary" : "border-border")}>
+                      {paymentMethod === "cod" && <div className="w-2.5 h-2.5 bg-primary rounded-full"></div>}
+                    </div>
                   </div>
+
+                  {paymentMethod === "cod" ? (
+                    <div className="p-6 bg-success/10 rounded-3xl border border-success/20 text-center">
+                      <p className="text-sm text-success font-bold">Lucky Draw coupons will be issued after delivery and cash collection.</p>
+                    </div>
+                  ) : (
+                    <div className="p-6 bg-secondary/30 rounded-3xl border border-dashed border-border text-center">
+                      <p className="text-sm text-muted-foreground">Secure payment gateway powered by Razorpay</p>
+                    </div>
+                  )}
                 </div>
 
                 <button 
@@ -676,7 +815,7 @@ export default function CheckoutPage() {
                   disabled={loading}
                   className="w-full py-5 bg-primary text-primary-foreground rounded-2xl font-black shadow-2xl shadow-primary/30 hover:scale-[1.02] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  {loading ? "Processing..." : `Pay ₹${grandTotal.toLocaleString('en-IN')}`}
+                  {loading ? "Processing..." : paymentMethod === "cod" ? `Place COD Order (₹${grandTotal.toLocaleString('en-IN')})` : `Pay ₹${grandTotal.toLocaleString('en-IN')}`}
                   <ShieldCheck className="w-6 h-6" />
                 </button>
               </div>

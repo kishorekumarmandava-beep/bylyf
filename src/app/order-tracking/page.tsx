@@ -287,6 +287,19 @@ export default function OrderTrackingPage() {
               </div>
             </div>
 
+            {/* COD Deferred Coupons Message */}
+            {order.paymentMethod === "cod" && (!order.couponsEarned || order.couponsEarned === 0) && (
+              <div className="p-6 bg-amber-500/10 rounded-3xl border border-amber-500/20 flex items-start md:items-center gap-4 animate-in">
+                <AlertCircle className="w-6 h-6 text-amber-500 shrink-0 mt-1 md:mt-0" />
+                <div>
+                  <div className="text-sm font-black text-amber-500 uppercase tracking-widest">Lucky Draw Coupons Pending</div>
+                  <div className="text-xs text-muted-foreground mt-1 font-semibold leading-relaxed">
+                    Since this is a Cash on Delivery order, your Lucky Draw coupons will be issued automatically once the package is delivered and cash is collected. This ensures fairness and maintains the strict transparency of our Lucky Draw system.
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Support Message */}
             <div className="p-6 bg-primary/5 rounded-3xl border border-primary/10 flex items-center gap-4">
               <Clock className="w-6 h-6 text-primary shrink-0" />

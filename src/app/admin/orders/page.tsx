@@ -361,6 +361,50 @@ export default function AdminOrdersPage() {
                     Attribution: {getAgentAttributionText(selectedOrder.referralCode)}
                   </div>
                 </div>
+
+                {selectedOrder.paymentMethod === "cod" && (!selectedOrder.couponsEarned || selectedOrder.couponsEarned === 0) && (
+                  <div className="p-4 bg-primary/10 border border-primary/20 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <div className="text-sm font-black text-primary">COD Order - Pending Cash Collection</div>
+                      <div className="text-xs text-muted-foreground mt-1">Once cash is collected and delivery is complete, click this to generate Lucky Draw coupons and Agent Commission.</div>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        if (!confirm("Are you sure you want to mark this delivered and issue coupons? This cannot be undone.")) return;
+                        setUpdating(true);
+                        try {
+                          const res = await fetch("/api/admin/trigger-cod-coupons", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ orderId: selectedOrder.id })
+                          });
+                          const data = await res.json();
+                          if (!res.ok) throw new Error(data.error || "Failed to trigger coupons");
+                          toast.success(`Success! Issued ${data.couponsEarned} coupons.`);
+                          
+                          const updatedOrder = { 
+                            ...selectedOrder, 
+                            status: "delivered", 
+                            couponsEarned: data.couponsEarned, 
+                            couponIds: data.couponIds, 
+                            agentCommission: data.commissionAmount 
+                          };
+                          setSelectedOrder(updatedOrder);
+                          setEditStatus("delivered");
+                          setOrders(prev => prev.map(o => o.id === updatedOrder.id ? updatedOrder : o));
+                        } catch (e: any) {
+                          toast.error(e.message);
+                        } finally {
+                          setUpdating(false);
+                        }
+                      }}
+                      disabled={updating}
+                      className="shrink-0 px-4 py-2 bg-primary text-primary-foreground font-black text-xs uppercase tracking-widest rounded-xl hover:scale-105 transition-all disabled:opacity-50 shadow-lg"
+                    >
+                      {updating ? "Processing..." : "Collect Cash & Issue Coupons"}
+                    </button>
+                  </div>
+                )}
                 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
