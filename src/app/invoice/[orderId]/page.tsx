@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, getDocs, collection, query, where } from "firebase/firestore";
 import { Printer, ArrowLeft } from "lucide-react";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 export default function InvoicePage() {
   const { orderId } = useParams();
+  const router = useRouter();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -86,11 +87,21 @@ export default function InvoicePage() {
     window.print();
   };
 
+  const handleBack = () => {
+    if (window.history.length > 1 && document.referrer) {
+      router.back();
+    } else {
+      window.close();
+      // Fallback if browser blocks window.close()
+      setTimeout(() => router.push('/'), 100);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-secondary/20 font-sans print:bg-white text-foreground">
       {/* Non-Printable Header */}
       <div className="max-w-4xl mx-auto p-4 print:hidden flex justify-between items-center my-4">
-        <button onClick={() => window.history.back()} className="flex items-center gap-2 font-bold text-muted-foreground hover:text-primary transition-colors">
+        <button onClick={handleBack} className="flex items-center gap-2 font-bold text-muted-foreground hover:text-primary transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
         <button 

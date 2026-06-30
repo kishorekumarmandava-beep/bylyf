@@ -15,7 +15,7 @@ import {
   X
 } from "lucide-react";
 import { db } from "@/lib/firebase";
-import { collection, query, orderBy, getDocs, where, doc, updateDoc } from "firebase/firestore";
+import { collection, query, orderBy, getDocs, where, doc, updateDoc, runTransaction } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 
@@ -46,6 +46,49 @@ export default function AdminOrdersPage() {
     setUpdating(true);
     try {
       const orderRef = doc(db, "orders", selectedOrder.id);
+      
+      // Restore Stock if newly cancelled
+      if (editStatus === "cancelled" && selectedOrder.status !== "cancelled") {
+        try {
+          for (const item of selectedOrder.items) {
+            const productRef = doc(db, "products", item.id);
+            await runTransaction(db, async (transaction) => {
+              const productDoc = await transaction.get(productRef);
+              if (!productDoc.exists()) return;
+              
+              const productData = productDoc.data();
+              const currentTotalStock = productData.stock || 0;
+              const newTotalStock = currentTotalStock + item.quantity;
+              
+              const updates: any = {
+                stock: newTotalStock
+              };
+              
+              if (productData.variants && productData.variants.length > 0 && (item.selectedSize || item.selectedColor)) {
+                const updatedVariants = productData.variants.map((v: any) => {
+                  const sizeMatches = !item.selectedSize || v.size === item.selectedSize;
+                  const colorMatches = !item.selectedColor || v.color === item.selectedColor;
+                  
+                  if (sizeMatches && colorMatches) {
+                    return {
+                      ...v,
+                      stock: (v.stock || 0) + item.quantity
+                    };
+                  }
+                  return v;
+                });
+                updates.variants = updatedVariants;
+              }
+              
+              transaction.update(productRef, updates);
+            });
+          }
+        } catch (stockErr) {
+          console.error("Failed to restore stock on cancellation:", stockErr);
+          toast.error("Failed to restore inventory stock. Please update stock manually.");
+        }
+      }
+
       await updateDoc(orderRef, {
         status: editStatus,
         courierPartner: editCourier,
@@ -295,7 +338,17 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-8 py-6">
                       <div className="font-black text-sm">₹{order.total.toLocaleString('en-IN')}</div>
-                      <div className="text-[10px] text-success font-black uppercase">Paid</div>
+                      {order.status === "cancelled" ? (
+                        <div className="text-[10px] text-destructive font-black uppercase tracking-widest mt-1">Cancelled</div>
+                      ) : order.paymentMethod === "cod" ? (
+                        (order.status === "delivered" || order.status === "paid") ? (
+                          <div className="text-[10px] text-success font-black uppercase tracking-widest mt-1">Paid (COD)</div>
+                        ) : (
+                          <div className="text-[10px] text-amber-500 font-black uppercase tracking-widest mt-1">Unpaid (COD)</div>
+                        )
+                      ) : (
+                        <div className="text-[10px] text-success font-black uppercase tracking-widest mt-1">Paid (Online)</div>
+                      )}
                     </td>
                     <td className="px-8 py-6">
                       <div className="font-black text-sm">{order.couponsEarned || 0}</div>

@@ -344,10 +344,15 @@ export default function ProfilePage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
-                          <Link href={`/invoice/${order.id}`} target="_blank" className="text-xs font-bold text-primary hover:underline flex items-center gap-1">
-                            <FileText className="w-4 h-4" /> View Invoice
-                          </Link>
-                          <span className="px-4 py-2 bg-success/10 text-success rounded-full text-xs font-black uppercase tracking-widest">
+                          {order.status !== "cancelled" && (
+                            <Link href={`/invoice/${order.id}`} target="_blank" className="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+                              <FileText className="w-4 h-4" /> View Invoice
+                            </Link>
+                          )}
+                          <span className={cn(
+                            "px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest",
+                            order.status === "cancelled" ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"
+                          )}>
                             {order.status || "paid"}
                           </span>
                         </div>
