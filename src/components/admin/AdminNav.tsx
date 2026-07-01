@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, Package, ShoppingBag, ShieldCheck, Settings, LifeBuoy, Trophy } from "lucide-react";
+import { Users, Package, ShoppingBag, ShieldCheck, Settings, LifeBuoy, Trophy, Banknote } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function AdminNav() {
@@ -16,6 +16,7 @@ export default function AdminNav() {
     { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
     { name: "Grievances", href: "/admin/grievances", icon: LifeBuoy },
     { name: "Agents", href: "/admin/agents", icon: ShieldCheck },
+    { name: "Withdrawals", href: "/admin/withdrawals", icon: Banknote },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
 

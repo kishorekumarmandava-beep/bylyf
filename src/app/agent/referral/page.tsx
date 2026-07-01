@@ -12,14 +12,18 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 
 export default function ReferralAgentDashboard() {
   const { user, profile } = useAuth();
   const router = useRouter();
   const [commissions, setCommissions] = useState<any[]>([]);
+  const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [upiId, setUpiId] = useState("");
+  const [withdrawing, setWithdrawing] = useState(false);
 
   const referralCode = profile?.referralCode || user?.uid?.slice(0, 8).toUpperCase() || "--------";
   const referralLink = `https://bylyf--bylyf-store-2026.asia-southeast1.hosted.app?ref=${referralCode}`;
@@ -39,6 +43,10 @@ export default function ReferralAgentDashboard() {
       const q = query(collection(db, "commissions"), where("agentUid", "==", user.uid));
       const snap = await getDocs(q);
       setCommissions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+
+      const wq = query(collection(db, "withdrawals"), where("agentUid", "==", user.uid));
+      const wSnap = await getDocs(wq);
+      setWithdrawals(wSnap.docs.map(d => ({ id: d.id, ...d.data() })));
     } catch (e) {
       console.error(e);
     } finally {
@@ -50,6 +58,9 @@ export default function ReferralAgentDashboard() {
   const totalSalesValue = commissions.reduce((s, c) => s + (c.saleAmount || 0), 0);
   const totalCoupons = commissions.reduce((s, c) => s + (c.couponsEarned || 0), 0);
   const totalReferrals = commissions.length;
+  
+  const totalWithdrawn = withdrawals.reduce((s, w) => s + (w.amount || 0), 0);
+  const availableBalance = totalEarnings - totalWithdrawn;
 
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink);
@@ -76,11 +87,17 @@ export default function ReferralAgentDashboard() {
             </p>
           </div>
           <button
-            onClick={() => toast("Withdrawal requests coming soon!")}
+            onClick={() => {
+              if (availableBalance <= 0) {
+                toast.error("You do not have any available balance to withdraw.");
+                return;
+              }
+              setShowWithdrawModal(true);
+            }}
             className="px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all shadow-lg shadow-blue-500/20"
           >
             <IndianRupee className="w-4 h-4" />
-            Withdraw Earnings
+            Withdraw ₹{availableBalance.toLocaleString("en-IN")}
           </button>
         </div>
 
@@ -250,11 +267,81 @@ export default function ReferralAgentDashboard() {
                   <span className="text-sm font-bold">Total Earnings</span>
                   <span className="font-black text-green-600">₹{totalEarnings.toLocaleString("en-IN")}</span>
                 </div>
+                {totalWithdrawn > 0 && (
+                  <div className="flex justify-between pt-4 border-t border-border">
+                    <span className="text-sm font-bold">Total Withdrawn/Pending</span>
+                    <span className="font-black text-red-500">-₹{totalWithdrawn.toLocaleString("en-IN")}</span>
+                  </div>
+                )}
+                <div className="flex justify-between pt-4 border-t border-border/80">
+                  <span className="text-sm font-bold text-primary uppercase tracking-widest">Available Balance</span>
+                  <span className="font-black text-primary text-xl">₹{availableBalance.toLocaleString("en-IN")}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {showWithdrawModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-background border border-border rounded-[3rem] shadow-3xl w-full max-w-md overflow-hidden flex flex-col p-8">
+            <h3 className="text-2xl font-black mb-2">Request Withdrawal</h3>
+            <p className="text-muted-foreground text-sm mb-6">You are requesting to withdraw your available balance of <strong className="text-primary">₹{availableBalance.toLocaleString("en-IN")}</strong>.</p>
+            
+            <div className="space-y-4 mb-8">
+              <div>
+                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-2 block">Your UPI ID</label>
+                <input 
+                  type="text" 
+                  value={upiId}
+                  onChange={(e) => setUpiId(e.target.value)}
+                  placeholder="e.g. phone@upi or name@bank"
+                  className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-xl font-bold outline-none focus:ring-2 focus:ring-primary transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setShowWithdrawModal(false)}
+                disabled={withdrawing}
+                className="flex-1 py-3 bg-secondary text-foreground rounded-2xl font-bold hover:bg-secondary/80 transition-all disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button 
+                disabled={withdrawing || !upiId.trim()}
+                onClick={async () => {
+                  setWithdrawing(true);
+                  try {
+                    await addDoc(collection(db, "withdrawals"), {
+                      agentUid: user?.uid,
+                      agentName: profile?.displayName || "Unknown Agent",
+                      agentRole: "agent",
+                      upiId: upiId.trim(),
+                      amount: availableBalance,
+                      status: "pending",
+                      createdAt: serverTimestamp(),
+                    });
+                    toast.success("Withdrawal requested successfully!");
+                    setShowWithdrawModal(false);
+                    setUpiId("");
+                    fetchData(); // refresh balances
+                  } catch (err: any) {
+                    toast.error(err.message || "Failed to request withdrawal.");
+                  } finally {
+                    setWithdrawing(false);
+                  }
+                }}
+                className="flex-1 py-3 bg-blue-600 text-white rounded-2xl font-black shadow-lg shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100"
+              >
+                {withdrawing ? "Processing..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
