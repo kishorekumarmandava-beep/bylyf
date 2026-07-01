@@ -104,5 +104,12 @@ service cloud.firestore {
       allow create: if isSignedIn();
       allow update: if isAdmin() || isBootstrapAdmin();
     }
+
+    // Withdrawals
+    match /withdrawals/{withdrawalId} {
+      allow read: if isSignedIn() && (resource.data.agentUid == request.auth.uid || isAdmin() || isBootstrapAdmin());
+      allow create: if isAgent();
+      allow update: if isAdmin() || isBootstrapAdmin();
+    }
   }
 }
