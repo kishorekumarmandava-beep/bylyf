@@ -59,7 +59,7 @@ export default function ReferralAgentDashboard() {
   const totalCoupons = commissions.reduce((s, c) => s + (c.couponsEarned || 0), 0);
   const totalReferrals = commissions.length;
   
-  const totalWithdrawn = withdrawals.reduce((s, w) => s + (w.amount || 0), 0);
+  const totalWithdrawn = withdrawals.filter(w => w.status !== "rejected").reduce((s, w) => s + (w.amount || 0), 0);
   const availableBalance = totalEarnings - totalWithdrawn;
 
   const copyLink = () => {

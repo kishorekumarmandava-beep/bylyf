@@ -63,7 +63,7 @@ export default function StorefrontAgentDashboard() {
   const totalEarned = fullCycles * 500;
   const progressPct = (redemptionsInCycle / 6) * 100;
   
-  const totalWithdrawn = withdrawals.reduce((s, w) => s + (w.amount || 0), 0);
+  const totalWithdrawn = withdrawals.filter(w => w.status !== "rejected").reduce((s, w) => s + (w.amount || 0), 0);
   const availableBalance = totalEarned - totalWithdrawn;
 
   const generateBatch = async (count: number = 10) => {

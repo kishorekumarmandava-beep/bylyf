@@ -1,0 +1,83 @@
+[debug] [2026-07-01T04:17:47.795Z] ----------------------------------------------------------------------
+[debug] [2026-07-01T04:17:47.800Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\kisho\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only firestore:rules
+[debug] [2026-07-01T04:17:47.800Z] CLI Version:   15.13.0
+[debug] [2026-07-01T04:17:47.800Z] Platform:      win32
+[debug] [2026-07-01T04:17:47.800Z] Node Version:  v24.14.1
+[debug] [2026-07-01T04:17:47.800Z] Time:          Wed Jul 01 2026 09:47:47 GMT+0530 (India Standard Time)
+[debug] [2026-07-01T04:17:47.800Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-07-01T04:17:47.804Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-07-01T04:17:49.996Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-07-01T04:17:49.997Z] > authorizing via signed-in user (kishorekumarmandava@gmail.com)
+[debug] [2026-07-01T04:17:49.997Z] [iam] checking project bylyf-store-2026 for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2026-07-01T04:17:49.998Z] Checked if tokens are valid: false, expires at: 1782027810525
+[debug] [2026-07-01T04:17:49.998Z] Checked if tokens are valid: false, expires at: 1782027810525
+[debug] [2026-07-01T04:17:49.998Z] > refreshing access token with scopes: []
+[debug] [2026-07-01T04:17:49.999Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-07-01T04:17:49.999Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-07-01T04:17:53.569Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-07-01T04:17:53.569Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-07-01T04:17:53.596Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/bylyf-store-2026:testIamPermissions [none]
+[debug] [2026-07-01T04:17:53.596Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/bylyf-store-2026:testIamPermissions  x-goog-user-project=bylyf-store-2026
+[debug] [2026-07-01T04:17:53.596Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/bylyf-store-2026:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2026-07-01T04:17:54.414Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2026-07-01T04:17:54.415Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2026-07-01T04:17:56.934Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/bylyf-store-2026:testIamPermissions 200
+[debug] [2026-07-01T04:17:56.934Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/bylyf-store-2026:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'bylyf-store-2026'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-07-01T04:17:56.944Z] Checked if tokens are valid: true, expires at: 1782883072570
+[debug] [2026-07-01T04:17:56.944Z] Checked if tokens are valid: true, expires at: 1782883072570
+[debug] [2026-07-01T04:17:56.944Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/bylyf-store-2026/databases/(default) [none]
+[debug] [2026-07-01T04:17:57.956Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/bylyf-store-2026/databases/(default) 200
+[debug] [2026-07-01T04:17:57.956Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/bylyf-store-2026/databases/(default) {"name":"projects/bylyf-store-2026/databases/(default)","uid":"b69a3397-6f61-4227-a488-02de8230b1c5","createTime":"2026-05-08T07:00:51.143294Z","updateTime":"2026-05-08T07:00:51.143294Z","locationId":"asia-south1","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-07-01T03:17:57.182374Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"j","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IIzbqM/PsJUDMPmd3sOPqZQD"}
+[info] i  firestore: reading indexes from firestore.indexes.json... 
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2026-07-01T04:17:57.961Z] Checked if tokens are valid: true, expires at: 1782883072570
+[debug] [2026-07-01T04:17:57.961Z] Checked if tokens are valid: true, expires at: 1782883072570
+[debug] [2026-07-01T04:17:57.962Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026:test [none]
+[debug] [2026-07-01T04:17:57.962Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026:test [omitted]
+[debug] [2026-07-01T04:17:59.902Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026:test 200
+[debug] [2026-07-01T04:17:59.902Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026:test {}
+[info] +  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2026-07-01T04:17:59.904Z] Checked if tokens are valid: true, expires at: 1782883072570
+[debug] [2026-07-01T04:17:59.905Z] Checked if tokens are valid: true, expires at: 1782883072570
+[debug] [2026-07-01T04:17:59.908Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/releases pageSize=10&pageToken=
+[debug] [2026-07-01T04:18:02.213Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/releases 200
+[debug] [2026-07-01T04:18:02.213Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/releases {"releases":[{"name":"projects/bylyf-store-2026/releases/cloud.firestore","rulesetName":"projects/bylyf-store-2026/rulesets/d621c776-6b30-4825-b230-09ad3633a81b","createTime":"2026-05-08T07:07:10.326750Z","updateTime":"2026-05-16T17:24:19.595219Z"},{"name":"projects/bylyf-store-2026/releases/firebase.storage/bylyf-store-2026.firebasestorage.app","rulesetName":"projects/bylyf-store-2026/rulesets/8e2e3be0-ba48-4638-836e-bef30700cd27","createTime":"2026-05-11T16:56:55.969334Z","updateTime":"2026-05-11T17:24:02.208347Z"}]}
+[debug] [2026-07-01T04:18:02.236Z] Checked if tokens are valid: true, expires at: 1782883072570
+[debug] [2026-07-01T04:18:02.237Z] Checked if tokens are valid: true, expires at: 1782883072570
+[debug] [2026-07-01T04:18:02.237Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/rulesets/d621c776-6b30-4825-b230-09ad3633a81b [none]
+[debug] [2026-07-01T04:18:05.177Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/rulesets/d621c776-6b30-4825-b230-09ad3633a81b 200
+[debug] [2026-07-01T04:18:05.177Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/rulesets/d621c776-6b30-4825-b230-09ad3633a81b [omitted]
+[info] i  firestore: uploading rules firestore.rules... 
+[debug] [2026-07-01T04:18:05.179Z] Checked if tokens are valid: true, expires at: 1782883072570
+[debug] [2026-07-01T04:18:05.179Z] Checked if tokens are valid: true, expires at: 1782883072570
+[debug] [2026-07-01T04:18:05.179Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/rulesets [none]
+[debug] [2026-07-01T04:18:05.179Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/rulesets [omitted]
+[debug] [2026-07-01T04:18:07.695Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/rulesets 200
+[debug] [2026-07-01T04:18:07.695Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/rulesets {"name":"projects/bylyf-store-2026/rulesets/f5e62a6f-9c34-47b0-b8c8-58bf3ecbc23b","source":{"files":[{"content":"rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    \n    // Helper functions\n    function isSignedIn() {\n      return request.auth != null;\n    }\n    function isAdmin() {\n      return isSignedIn() && (\n        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||\n        exists(/databases/$(database)/documents/admin/$(request.auth.uid))\n      );\n    }\n    function isAgent() {\n      return isSignedIn() && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'agent' || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'storefront_agent');\n    }\n    // Allow bootstrap: the designated admin phone can always self-elevate\n    function isBootstrapAdmin() {\n      return isSignedIn() && \n        request.auth.token.phone_number != null &&\n        request.auth.token.phone_number.matches('.*9392849473$');\n    }\n\n    // User Profiles\n    match /users/{userId} {\n      allow read: if isSignedIn() && (\n        request.auth.uid == userId || \n        isAdmin() || \n        isBootstrapAdmin() || \n        resource.data.role == 'agent' || \n        resource.data.role == 'storefront_agent'\n      );\n      allow create: if isSignedIn() && request.auth.uid == userId;\n      // Allow self-update; bootstrap admin can update their own role field\n      allow update: if isSignedIn() && (\n        request.auth.uid == userId || \n        isAdmin() ||\n        (isBootstrapAdmin() && request.auth.uid == userId)\n      );\n    }\n\n    // Products\n    match /products/{productId} {\n      allow read: if true; // Publicly viewable\n      allow write: if isAdmin() || isBootstrapAdmin(); // Only admin can add/edit\n    }\n\n    // Digital Product Content (Private)\n    match /product_content/{contentId} {\n      allow read: if isAdmin() || isBootstrapAdmin();\n      allow write: if isAdmin() || isBootstrapAdmin();\n    }\n\n    // Orders\n    match /orders/{orderId} {\n      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin() || isBootstrapAdmin());\n      allow create: if isSignedIn();\n      allow update: if isAdmin() || isBootstrapAdmin();\n    }\n\n    // Coupons\n    match /coupons/{couponId} {\n      allow read: if isSignedIn(); // Users need to check if a coupon is valid\n      allow write: if isAdmin() || isAgent() || isBootstrapAdmin(); // Agents generate coupons\n    }\n\n    // Global Settings\n    match /settings/{settingId} {\n      allow read: if true;\n      allow write: if isAdmin() || isBootstrapAdmin();\n    }\n\n    // Campaigns\n    match /campaigns/{campaignId} {\n      allow read: if true;\n      allow write: if isAdmin() || isBootstrapAdmin();\n    }\n\n    // Lucky Draw Entries\n    match /lucky_draw_entries/{entryId} {\n      allow read: if true;\n      allow create: if isSignedIn();\n      allow update: if false; // Immutable ledger\n      allow delete: if false; // Immutable ledger\n    }\n\n    // Tickets (Grievance Support)\n    match /tickets/{ticketId} {\n      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin() || isBootstrapAdmin());\n      allow create: if isSignedIn();\n      allow update: if isAdmin() || isBootstrapAdmin();\n    }\n\n    // Audit Logs\n    match /audit_logs/{logId} {\n      allow create: if isSignedIn();\n      allow read: if isAdmin() || isBootstrapAdmin();\n    }\n\n    // Commissions (Privacy-focused tracking)\n    match /commissions/{commissionId} {\n      allow read: if isSignedIn() && (resource.data.agentUid == request.auth.uid || isAdmin() || isBootstrapAdmin());\n      allow create: if isSignedIn();\n      allow update: if isAdmin() || isBootstrapAdmin();\n    }\n\n    // Withdrawals\n    match /withdrawals/{withdrawalId} {\n      allow read: if isSignedIn() && (resource.data.agentUid == request.auth.uid || isAdmin() || isBootstrapAdmin());\n      allow create: if isAgent();\n      allow update: if isAdmin() || isBootstrapAdmin();\n    }\n  }\n}\n","name":"firestore.rules"}]},"createTime":"2026-07-01T04:18:06.951327Z","metadata":{"services":["cloud.firestore"]}}
+[debug] [2026-07-01T04:18:07.695Z] [rules] created ruleset projects/bylyf-store-2026/rulesets/f5e62a6f-9c34-47b0-b8c8-58bf3ecbc23b
+[debug] [2026-07-01T04:18:07.696Z] [rules] releasing cloud.firestore/(default) with ruleset projects/bylyf-store-2026/rulesets/f5e62a6f-9c34-47b0-b8c8-58bf3ecbc23b
+[debug] [2026-07-01T04:18:07.697Z] Checked if tokens are valid: true, expires at: 1782883072570
+[debug] [2026-07-01T04:18:07.697Z] Checked if tokens are valid: true, expires at: 1782883072570
+[debug] [2026-07-01T04:18:07.697Z] >>> [apiv2][query] PATCH https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/releases/cloud.firestore/(default) [none]
+[debug] [2026-07-01T04:18:07.697Z] >>> [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/releases/cloud.firestore/(default) {"release":{"name":"projects/bylyf-store-2026/releases/cloud.firestore/(default)","rulesetName":"projects/bylyf-store-2026/rulesets/f5e62a6f-9c34-47b0-b8c8-58bf3ecbc23b"}}
+[debug] [2026-07-01T04:18:09.492Z] <<< [apiv2][status] PATCH https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/releases/cloud.firestore/(default) 200
+[debug] [2026-07-01T04:18:09.492Z] <<< [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/bylyf-store-2026/releases/cloud.firestore/(default) {"name":"projects/bylyf-store-2026/releases/cloud.firestore","rulesetName":"projects/bylyf-store-2026/rulesets/f5e62a6f-9c34-47b0-b8c8-58bf3ecbc23b","createTime":"2026-05-08T07:07:10.326750Z","updateTime":"2026-07-01T04:18:08.751069Z"}
+[debug] [2026-07-01T04:18:09.492Z] [rules] updated release projects/bylyf-store-2026/releases/cloud.firestore
+[info] +  firestore: released rules firestore.rules to cloud.firestore 
+[info] 
+[info] +  Deploy complete! 
+[info] 
+[info] Project Console: https://console.firebase.google.com/project/bylyf-store-2026/overview
+[debug] [2026-07-01T04:18:17.495Z] Error: Timed out.
+    at Timeout.<anonymous> (C:\Users\kisho\AppData\Roaming\npm\node_modules\firebase-tools\lib\utils.js:309:49)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+[error] 
+[error] Error: An unexpected error has occurred.
