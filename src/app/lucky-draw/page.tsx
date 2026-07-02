@@ -155,7 +155,7 @@ export default function LuckyDrawPage() {
                   <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
                     <Trophy className="w-8 h-8 mb-4 opacity-50" />
                     <div className="text-sm font-bold opacity-60 mb-1 uppercase tracking-widest">Grand Prize</div>
-                    <div className="text-xl font-black">{activeCampaign?.prizeValue ? `₹${activeCampaign.prizeValue.toLocaleString()}` : "Worth ₹1000000"}</div>
+                    <div className="text-xl font-black">{activeCampaign?.prizeValue ? `₹${activeCampaign.prizeValue.toLocaleString()}` : "Plot Worth ₹1000000"}</div>
                   </div>
                   <div className="p-6 bg-white/5 rounded-3xl border border-white/10">
                     <ShieldCheck className="w-8 h-8 mb-4 opacity-50" />

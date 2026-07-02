@@ -249,7 +249,7 @@ export default function GrievancePage() {
                   </div>
                   <div>
                     <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Email Address</div>
-                    <div className="text-lg font-black">grievance@bylyf.com</div>
+                    <div className="text-lg font-black">martyzee.online@gmail.com</div>
                   </div>
                 </div>
 
@@ -272,9 +272,9 @@ export default function GrievancePage() {
                   <div>
                     <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Corporate Address</div>
                     <div className="text-lg font-black leading-relaxed">
-                      BYLYF Storefront Pvt. Ltd.<br />
-                      H-No: 1-2-3, Madhapur, Hyderabad,<br />
-                      Telangana, India - 500081
+                      plot no3,3a yadava nagar,<br />
+                      near richmond villas, b road,<br />
+                      kurnool 518001
                     </div>
                   </div>
                 </div>
