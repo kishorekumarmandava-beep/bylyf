@@ -15,7 +15,7 @@ import {
   X
 } from "lucide-react";
 import { db } from "@/lib/firebase";
-import { collection, query, orderBy, getDocs, where, doc, updateDoc, runTransaction } from "firebase/firestore";
+import { collection, query, orderBy, getDocs, where, doc, updateDoc, runTransaction, getDoc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 
@@ -52,36 +52,37 @@ export default function AdminOrdersPage() {
         try {
           for (const item of selectedOrder.items) {
             const productRef = doc(db, "products", item.id);
-            await runTransaction(db, async (transaction) => {
-              const productDoc = await transaction.get(productRef);
-              if (!productDoc.exists()) return;
-              
-              const productData = productDoc.data();
-              const currentTotalStock = productData.stock || 0;
-              const newTotalStock = currentTotalStock + item.quantity;
-              
-              const updates: any = {
-                stock: newTotalStock
-              };
-              
-              if (productData.variants && productData.variants.length > 0 && (item.selectedSize || item.selectedColor)) {
-                const updatedVariants = productData.variants.map((v: any) => {
-                  const sizeMatches = !item.selectedSize || v.size === item.selectedSize;
-                  const colorMatches = !item.selectedColor || v.color === item.selectedColor;
-                  
-                  if (sizeMatches && colorMatches) {
-                    return {
-                      ...v,
-                      stock: (v.stock || 0) + item.quantity
-                    };
-                  }
-                  return v;
-                });
-                updates.variants = updatedVariants;
-              }
-              
-              transaction.update(productRef, updates);
-            });
+            const productDoc = await getDoc(productRef);
+            if (!productDoc.exists()) continue;
+            
+            const productData = productDoc.data();
+            
+            const currentTotalStock = Number(productData.stock) || 0;
+            const qtyToRestore = Number(item.quantity) || 0;
+            const newTotalStock = currentTotalStock + qtyToRestore;
+            
+            const updates: any = {
+              stock: newTotalStock
+            };
+            
+            if (productData.variants && productData.variants.length > 0 && (item.selectedSize || item.selectedColor)) {
+              const updatedVariants = productData.variants.map((v: any) => {
+                const sizeMatches = !item.selectedSize || v.size === item.selectedSize;
+                const colorMatches = !item.selectedColor || v.color === item.selectedColor;
+                
+                if (sizeMatches && colorMatches) {
+                  return {
+                    ...v,
+                    stock: (Number(v.stock) || 0) + qtyToRestore
+                  };
+                }
+                return v;
+              });
+              updates.variants = updatedVariants;
+            }
+            
+            await updateDoc(productRef, updates);
+            console.log(`Restored ${qtyToRestore} stock for product ${item.id}`);
           }
         } catch (stockErr) {
           console.error("Failed to restore stock on cancellation:", stockErr);
